@@ -41,5 +41,5 @@
 - [ ] Entire checkpoint link + ID
 - [ ] cfo.ai business plan (needs access)
 - [ ] Recovery run (failed fix → next steps) — trap verified; live trace pending
-- [ ] Public repo, event-dated commits
+- [x] Public repo, event-dated commits — **https://github.com/JMadhan1/tenantguard**
 - [ ] Demo video + #neatHack posts
