@@ -1,0 +1,22 @@
+# secrets
+.env
+*.key
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# tenantguard run artifacts & local db (keep curated evidence in docs/)
+artifacts/*
+!artifacts/.gitkeep
+*.sqlite
+*.sqlite3
+runs.db
+
+# os
+.DS_Store
+Thumbs.db
