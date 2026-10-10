@@ -125,7 +125,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:16px;margin:26px 0 1
   The agent reproduced the leak, proposed a fix, <b>caught its own fix breaking legitimate
   same-tenant access</b>, reverted, and applied a tenant-scoped fix — verified by tests, not by the model.</p>
 
-  <div class="kpis"><div class="kpi good"><div class="kpi-label">Verdict</div><div class="kpi-value">Fixed</div><div class="kpi-sub">security + functionality</div></div><div class="kpi good"><div class="kpi-label">Security tests</div><div class="kpi-value">Pass</div><div class="kpi-sub">cross-tenant reads blocked</div></div><div class="kpi good"><div class="kpi-label">Functionality tests</div><div class="kpi-value">Pass</div><div class="kpi-sub">legitimate access preserved</div></div><div class="kpi warn"><div class="kpi-label">Patch attempts</div><div class="kpi-value">2</div><div class="kpi-sub">1 regression recovered</div></div></div>
+  <div class="kpis"><div class="kpi good"><div class="kpi-label">Verdict</div><div class="kpi-value">Fixed</div><div class="kpi-sub">security + functionality</div></div><div class="kpi good"><div class="kpi-label">Security tests</div><div class="kpi-value">Pass</div><div class="kpi-sub">cross-tenant reads blocked</div></div><div class="kpi good"><div class="kpi-label">Functionality tests</div><div class="kpi-value">Pass</div><div class="kpi-sub">legitimate access preserved</div></div><div class="kpi neutral"><div class="kpi-label">Patch attempts</div><div class="kpi-value">1</div><div class="kpi-sub">no regressions</div></div></div>
 
   <div class="grid">
     <div class="panel">
@@ -134,11 +134,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:16px;margin:26px 0 1
       <ul class="tl"><li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Intake</span><span class="tl-note">case=invoicely-idor-001</span></li>
 <li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Baseline tests</span><span class="tl-note">6 passed / 2 failed</span></li>
 <li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Inspect code</span><span class="tl-note">read [&#x27;invoicely/app.py&#x27;, &#x27;invoicely/store.py&#x27;]</span></li>
-<li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Propose patch</span><span class="tl-note">attempt 1: attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)</span></li>
-<li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Apply in worktree</span><span class="tl-note">invoicely/app.py</span></li>
-<li class="tl-row fail"><span class="tl-dot"></span><span class="tl-label">Verify</span><span class="tl-note">Regression: a passing test broke (functionality=False)</span></li>
-<li class="tl-row recover"><span class="tl-dot"></span><span class="tl-label">Classify + revert</span><span class="tl-note">Reverted the regressing patch — recovery</span></li>
-<li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Propose patch</span><span class="tl-note">attempt 2: tenant-scoped fix</span></li>
+<li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Propose patch</span><span class="tl-note">attempt 1: llm attempt 1 (improved)</span></li>
 <li class="tl-row step"><span class="tl-dot"></span><span class="tl-label">Apply in worktree</span><span class="tl-note">invoicely/app.py</span></li>
 <li class="tl-row pass"><span class="tl-dot"></span><span class="tl-label">Verify</span><span class="tl-note">Security and functionality both pass</span></li>
 <li class="tl-row pass"><span class="tl-dot"></span><span class="tl-label">Export report</span><span class="tl-note">fixed</span></li></ul>
@@ -159,15 +155,17 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:16px;margin:26px 0 1
     <h2 class="sec">The patch it applied</h2>
     <pre class="diff"><span class="dl ">--- a/invoicely/app.py</span>
 <span class="dl ">+++ b/invoicely/app.py</span>
-<span class="dl hunk">@@ -36,9 +36,8 @@</span>
+<span class="dl hunk">@@ -36,9 +36,10 @@</span>
 <span class="dl ">         invoice = data[&quot;invoices&quot;].get(invoice_id)</span>
 <span class="dl ">         if invoice is None:</span>
 <span class="dl ">             raise HTTPException(status_code=404, detail=&quot;invoice not found&quot;)</span>
 <span class="dl del">-        # SECURITY BUG (broken object-level authorization / IDOR):</span>
 <span class="dl del">-        # the invoice is returned without checking that it belongs to the</span>
 <span class="dl del">-        # caller&#x27;s tenant, so any authenticated user can read any invoice.</span>
+<span class="dl ins">+        # Enforce tenant-level authorization: the caller&#x27;s tenant must match</span>
+<span class="dl ins">+        # the invoice&#x27;s tenant; cross-tenant reads are forbidden.</span>
 <span class="dl ins">+        if invoice[&quot;tenant_id&quot;] != user[&quot;tenant_id&quot;]:</span>
-<span class="dl ins">+            raise HTTPException(status_code=403, detail=&quot;forbidden&quot;)</span>
+<span class="dl ins">+            raise HTTPException(status_code=403, detail=&quot;access denied&quot;)</span>
 <span class="dl ">         return invoice</span>
 <span class="dl "> </span>
 <span class="dl ">     return app</span></pre>
@@ -175,10 +173,10 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:16px;margin:26px 0 1
 
   <div class="loop">
     <b>neatlogs</b> observes <span class="arrow">→</span> <b>Entire</b> proves how it was built
-    <span class="arrow">→</span> <b>cfo.ai</b> prices the cost per fix &nbsp;·&nbsp; offline scripted run (no LLM) — token &amp; cost come from a live run
+    <span class="arrow">→</span> <b>cfo.ai</b> prices the cost per fix &nbsp;·&nbsp; global.anthropic.claude-opus-4-6-v1 · improved prompt · 1,128/273 tok · $0.0050/fix · neatlogs off
   </div>
 
-  <p class="foot">run test-artifacts · 3.93s · generated by report.py</p>
+  <p class="foot">run run-c14c0efb · 10.11s · generated by report.py</p>
 </div>
 </body>
 </html>

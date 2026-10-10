@@ -35,6 +35,14 @@
 - Docs: README, BUSINESS_PLAN (cfo.ai), EVIDENCE index, SETUP, DEMO_SCRIPT, BUILD_IN_PUBLIC, ENTIRE.
 - **Pending (needs operator):** live traced runs (ANTHROPIC + NEATLOGS keys), Entire checkpoints, cfo.ai access, demo video, #neatHack posts, public repo push.
 
+### 2026-10-10 — LIVE run on AWS Bedrock (tested)
+- Backend: AWS Bedrock, Claude **Opus 4.6** (`global.anthropic.claude-opus-4-6-v1`), region `ap-south-1`. `scripts/smoke_bedrock.py` → model replied OK.
+- **Live remediation (real model), both runs reached `fixed`, security+functionality pass, 1 attempt:**
+  - improved prompt: 1128 in / 273 out tokens, **$0.0050/fix**
+  - baseline prompt: 1075 in / 221 out tokens, **$0.0044/fix**
+- Finding: Opus 4.6 fixes correctly in 1 attempt even on the weak prompt, so it does not trip the recovery trap naturally. **Recovery is demonstrated by the offline labeled fault-injection run** (deterministic regression→revert→fix), which the brief explicitly permits.
+- **neatlogs tracing was OFF** (`neatlogs: False`) because `NEATLOGS_API_KEY` is not yet set — needed for the required trace evidence.
+
 ## Submission (tracking)
 - [ ] Agent completes the remediation start→finish
 - [ ] neatlogs before/after + trace links
