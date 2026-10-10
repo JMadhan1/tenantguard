@@ -2,8 +2,8 @@
 
     python run_case.py                     # offline (no API key): naive fix → recovery → fixed
     python run_case.py --correct-first     # offline, fixes correctly on the first try
-    python run_case.py --live              # real Claude run (needs ANTHROPIC_API_KEY)
-    python run_case.py --live --model claude-haiku-5-5
+    python run_case.py --live              # live run on AWS Bedrock (keys in .env)
+    python run_case.py --live --quality baseline   # weaker prompt, for the before/after
 """
 
 import argparse

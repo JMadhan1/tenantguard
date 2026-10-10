@@ -52,8 +52,9 @@ Baseline fixture state (the leak): `2 failed, 6 passed` — cross-tenant reads r
 ## The real run (for submission evidence)
 
 ```bash
-cp .env.example .env          # ANTHROPIC_API_KEY (+ NEATLOGS_API_KEY for traces)
-python run_case.py --live --model claude-haiku-5-5     # cheap first, then your chosen model
+cp .env.example .env          # AWS Bedrock keys + NEATLOGS_API_KEY (see docs/SETUP.md)
+python scripts/smoke_bedrock.py   # one cheap call to confirm creds/region/model
+python run_case.py --live         # Claude Opus 4.6 on AWS Bedrock, traced by neatlogs
 ```
 
 Then the **before/after** that neatHack asks for — two neatlogs-traced runs of the *same* agent, improved:

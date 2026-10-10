@@ -14,13 +14,16 @@ python report.py              # → docs/report.html
 python -m pytest tests/ -q    # offline agent tests
 ```
 
-## 2. Anthropic key **(you)**
-1. console.anthropic.com → API keys → create.
-2. `cp .env.example .env`, paste into `ANTHROPIC_API_KEY`.
-3. Confirm the model/spend cap with the team, then:
+## 2. AWS Bedrock keys **(you)** — Claude Opus 4.6, `ap-south-1`
+1. `cp .env.example .env` (or edit the existing `.env`).
+2. Paste `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, keep `AWS_REGION=ap-south-1`.
+   The backend auto-detects to Bedrock when the AWS keys are set; the model is
+   `global.anthropic.claude-opus-4-6-v1`.
+3. Validate cheaply (one tiny call) before the full run:
    ```bash
-   python run_case.py --live --model claude-haiku-5-5   # cheap validation first
+   python scripts/smoke_bedrock.py
    ```
+   If it errors, enable Opus 4.6 model access in the Bedrock console for `ap-south-1`.
 
 ## 3. neatlogs **(you + one command)**
 1. app.neatlogs.com → sign in → create org + project.
