@@ -7,6 +7,7 @@ httpx>=0.27
 langgraph>=0.2
 langchain-core>=0.3
 anthropic>=0.49
+boto3>=1.34          # AWS Bedrock backend (AnthropicBedrock)
 pydantic>=2.6
 
 # observability (neatlogs)

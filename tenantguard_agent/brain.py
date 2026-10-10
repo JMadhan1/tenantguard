@@ -54,23 +54,48 @@ class OfflineBrain:
         }
 
 
-def build_anthropic_client(workflow_name: str):
-    """Return (client, neatlogs_enabled). Wraps the client with neatlogs when
-    NEATLOGS_API_KEY is set so every model call is traced."""
+def detect_backend() -> str:
+    """Pick a backend from whatever credentials are present."""
     import os
-    from anthropic import Anthropic
+    if os.environ.get("TENANTGUARD_BACKEND"):
+        return os.environ["TENANTGUARD_BACKEND"]
+    if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY"):
+        return "bedrock"
+    return "anthropic"
 
+
+def _base_client(backend: str):
+    """Construct the raw Anthropic-compatible client for the backend."""
+    import os
+    if backend == "bedrock":
+        from anthropic import AnthropicBedrock
+        return AnthropicBedrock(
+            aws_access_key=os.environ.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=os.environ.get("AWS_SESSION_TOKEN"),
+            aws_region=os.environ.get("AWS_REGION", "ap-south-1"),
+        )
+    from anthropic import Anthropic
+    return Anthropic()
+
+
+def build_model_client(workflow_name: str, backend: str):
+    """Return (client, neatlogs_enabled). Wraps the client with neatlogs when
+    NEATLOGS_API_KEY is set so every model call is traced. Works for both the
+    direct Anthropic API and AWS Bedrock."""
+    import os
+    base = _base_client(backend)
     key = os.environ.get("NEATLOGS_API_KEY")
     if key:
         try:
             import neatlogs
-            if not getattr(build_anthropic_client, "_inited", False):
+            if not getattr(build_model_client, "_inited", False):
                 neatlogs.init(api_key=key, workflow_name="tenantguard")
-                build_anthropic_client._inited = True
-            return neatlogs.wrap(Anthropic()), True
+                build_model_client._inited = True
+            return neatlogs.wrap(base), True
         except Exception as e:  # pragma: no cover
             print(f"[tenantguard] neatlogs disabled ({e}); running without tracing.")
-    return Anthropic(), False
+    return base, False
 
 
 # Prompt guidance: 'baseline' is the naive first version of the agent; 'improved'
@@ -92,13 +117,14 @@ class LLMBrain:
 
     kind = "llm"
 
-    def __init__(self, model: str, quality: str = "improved", client=None):
+    def __init__(self, model: str, quality: str = "improved", client=None, backend: str = None):
         self.model = model
         self.quality = quality
+        self.backend = backend or detect_backend()
         self.input_tokens = 0
         self.output_tokens = 0
         if client is None:
-            client, self.neatlogs_enabled = build_anthropic_client(f"tenantguard-{quality}")
+            client, self.neatlogs_enabled = build_model_client(f"tenantguard-{quality}", self.backend)
         else:
             self.neatlogs_enabled = False
         self.client = client
@@ -114,11 +140,12 @@ class LLMBrain:
             f"Source files:\n{file_block}{fb}\n\n"
             "Respond with JSON only."
         )
-        resp = self.client.messages.create(
-            model=self.model, max_tokens=1500,
-            thinking={"type": "adaptive"},
-            messages=[{"role": "user", "content": prompt}],
-        )
+        kwargs = dict(model=self.model, max_tokens=1500,
+                      messages=[{"role": "user", "content": prompt}])
+        if self.backend != "bedrock":
+            # adaptive thinking on the direct API; omit on Bedrock for broad compatibility
+            kwargs["thinking"] = {"type": "adaptive"}
+        resp = self.client.messages.create(**kwargs)
         u = getattr(resp, "usage", None)
         if u:
             self.input_tokens += getattr(u, "input_tokens", 0) or 0
