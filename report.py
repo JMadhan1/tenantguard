@@ -3,8 +3,8 @@
     python report.py                # newest run in artifacts/
     python report.py run-1234abcd   # a specific run
 
-Writes docs/report.html — no server, no build step, works offline. Editorial
-"incident resolved" treatment with meaningful motion (reduced-motion safe).
+Writes docs/report.html — no server, no build step, works offline. A single
+light "incident dossier" treatment with meaningful motion (reduced-motion safe).
 """
 
 import glob
@@ -46,9 +46,10 @@ def timeline_rows(events):
             kind = "pass"
         elif ph in ("apply_failed", "human_review"):
             kind = "fail"
+        num = f"{i + 1:02d}"
         rows.append(
             f'<li class="tl-row {kind}" style="--i:{i}">'
-            f'<span class="tl-dot"></span>'
+            f'<span class="tl-num">{num}</span><span class="tl-dot"></span>'
             f'<span class="tl-label">{html.escape(label)}</span>'
             f'<span class="tl-note">{note}</span></li>'
         )
@@ -140,7 +141,7 @@ def build(d, diff):
     tmpl = TEMPLATE
     repl = {
         "{{CASE}}": html.escape(d["case_id"]),
-        "{{STATUS_WORD}}": "SECURED" if fixed else d["status"].upper(),
+        "{{STATUS_WORD}}": "SEALED" if fixed else d["status"].upper(),
         "{{KPIS}}": "".join(kpis),
         "{{TIMELINE}}": timeline_rows(d["events"]),
         "{{VERDICT}}": verdict_matrix(v),
@@ -155,160 +156,157 @@ def build(d, diff):
     return tmpl
 
 
+# Single deliberate light "incident dossier" world: paper ground + blueprint grid,
+# serif display headline, forensic mono labels, a SEALED rubber-stamp.
 TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TenantGuard Console</title>
+<title>TenantGuard Dossier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* dark-first "incident resolved" security console: hero seal, KPI band, timeline | verdict, patch */
 :root{
-  --bg:#0a0e17; --bg2:#0d1220; --surface:#121829; --surface-2:#0f1524; --fg:#eaeef8;
-  --muted:#8894ad; --line:#232c42; --accent:#5b8cff;
-  --breach:#ff4d61; --secure:#27d49f; --warn:#f6b34b;
-  --display:'Archivo',system-ui,-apple-system,Segoe UI,sans-serif;
+  --paper:#f3f4f9; --panel:#ffffff; --ink:#15192a; --muted:#5c6579;
+  --line:#e3e6f1; --rule:#c7cde0; --accent:#2f49d8;
+  --breach:#d12338; --secure:#0e9b67; --warn:#b4690e;
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
   --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
-  color-scheme:dark;
-}
-@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
-  --bg:#f4f6fb; --bg2:#eef1f8; --surface:#ffffff; --surface-2:#f7f9fd; --fg:#141a28;
-  --muted:#5b6578; --line:#e3e7f0; --accent:#3a63d8;
-  --breach:#d7263d; --secure:#0fa37f; --warn:#c2820a; color-scheme:light;
-}}
-:root[data-theme="light"]{
-  --bg:#f4f6fb; --bg2:#eef1f8; --surface:#ffffff; --surface-2:#f7f9fd; --fg:#141a28;
-  --muted:#5b6578; --line:#e3e7f0; --accent:#3a63d8;
-  --breach:#d7263d; --secure:#0fa37f; --warn:#c2820a; color-scheme:light;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  color-scheme:light;
 }
 *{box-sizing:border-box}
-body{margin:0;background:
-  radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb,var(--accent) 12%,transparent), transparent 60%),
-  var(--bg);
-  color:var(--fg);font-family:var(--display);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1040px;margin:0 auto;padding-block:26px;padding-inline:16px}
+body{margin:0;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px}
+.wrap{max-width:1020px;margin:0 auto;padding-block:26px;padding-inline:16px}
+
+/* dossier header strip */
+.strip{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:0}
+.strip b{color:var(--ink)}
+.strip .file{color:var(--accent)}
 
 /* hero */
-.hero{position:relative;background:linear-gradient(180deg,var(--bg2),var(--surface));
-  border:1px solid var(--line);border-radius:20px;padding:26px 24px;overflow:hidden}
-.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(90deg,transparent 0 38px,color-mix(in srgb,var(--fg) 3%,transparent) 38px 39px);
-  opacity:.35;mask:linear-gradient(90deg,transparent,#000 30%,#000 70%,transparent)}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.hero h1{font-size:clamp(28px,5vw,44px);font-weight:900;letter-spacing:-.02em;line-height:1.02;margin:10px 0 8px;
-  text-wrap:balance;max-width:16ch}
-.hero p{color:var(--muted);margin:0;max-width:56ch}
-.hero-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;position:relative;z-index:1}
-@media(max-width:640px){.hero-grid{grid-template-columns:1fr}}
-/* breach -> secured status line */
-.status{display:inline-flex;align-items:center;gap:10px;margin-top:16px;font-family:var(--mono);
-  font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:7px 13px}
-.status .arrow{color:var(--muted)}
-.b-old{color:var(--breach);text-decoration:line-through;opacity:.9;animation:breachPulse 1.1s ease-out 1}
+.hero{position:relative;background:var(--panel);border:1px solid var(--line);
+  border-top:none;border-radius:0 0 18px 18px;padding:30px 26px 26px;overflow:hidden}
+.hero h1{font-family:var(--serif);font-weight:900;font-size:clamp(34px,6.5vw,62px);line-height:.98;
+  letter-spacing:-.015em;margin:4px 0 14px;max-width:15ch;text-wrap:balance}
+.hero p{color:var(--muted);margin:0;max-width:58ch;font-size:15.5px}
+.status{display:inline-flex;align-items:center;gap:11px;margin-top:18px;font-family:var(--mono);font-size:13px;
+  background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 13px}
+.b-old{color:var(--breach);text-decoration:line-through;animation:fade 1.1s ease-out 1}
 .b-new{color:var(--secure);font-weight:600}
-.b-new .lock{display:inline-block;animation:popIn .5s cubic-bezier(.2,1.4,.3,1) .5s both}
-@keyframes breachPulse{0%,60%{opacity:1}100%{opacity:.6}}
-@keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-/* seal */
-.seal{width:118px;height:118px;flex:none;justify-self:end}
-.seal .ring{stroke:var(--secure);stroke-width:2.5;fill:none;stroke-linecap:round;
-  stroke-dasharray:300;stroke-dashoffset:300;animation:draw 1.1s ease-out .15s forwards}
-.seal .body{fill:color-mix(in srgb,var(--secure) 14%,transparent)}
-.seal .tick{stroke:var(--secure);stroke-width:3.4;fill:none;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:40;stroke-dashoffset:40;animation:draw .5s ease-out 1s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
+.b-new .lock{display:inline-block;animation:popIn .5s cubic-bezier(.2,1.5,.3,1) .55s both}
+.arrow{color:var(--rule)}
+@keyframes fade{0%,55%{opacity:1}100%{opacity:.55}}
+@keyframes popIn{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 
-/* kpi band */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+/* SEALED rubber stamp */
+.stamp{position:absolute;top:22px;right:22px;font-family:var(--mono);font-weight:600;
+  color:var(--secure);border:3px double var(--secure);border-radius:8px;
+  padding:7px 14px 5px;font-size:15px;letter-spacing:.22em;text-transform:uppercase;
+  transform:rotate(-9deg);opacity:.92;animation:stamp .5s cubic-bezier(.2,1.3,.3,1) .9s both;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--secure) 12%,transparent) inset}
+.stamp small{display:block;font-size:8.5px;letter-spacing:.14em;color:var(--muted);text-align:center;margin-top:2px}
+@keyframes stamp{0%{transform:rotate(-9deg) scale(2.1);opacity:0}
+  65%{transform:rotate(-9deg) scale(.9);opacity:.92}100%{transform:rotate(-9deg) scale(1);opacity:.92}}
+
+/* kpi ledger */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:14px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:15px;position:relative;overflow:hidden;
-  opacity:0;transform:translateY(10px);animation:rise .6s ease-out forwards}
-.kpi:nth-child(1){animation-delay:.15s}.kpi:nth-child(2){animation-delay:.25s}
-.kpi:nth-child(3){animation-delay:.35s}.kpi:nth-child(4){animation-delay:.45s}
-.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--muted)}
-.kpi.good::before{background:var(--secure)}.kpi.crit::before{background:var(--breach)}
-.kpi.warn::before{background:var(--warn)}.kpi.accent::before{background:var(--accent)}
-.kpi-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-.kpi-value{font-weight:800;font-size:30px;line-height:1.1;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi{padding:16px 17px;border-right:1px solid var(--line);position:relative;
+  opacity:0;transform:translateY(9px);animation:rise .55s ease-out forwards}
+.kpi:last-child{border-right:0}
+@media(max-width:760px){.kpi:nth-child(2n){border-right:0}.kpi:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+.kpi:nth-child(1){animation-delay:.12s}.kpi:nth-child(2){animation-delay:.2s}
+.kpi:nth-child(3){animation-delay:.28s}.kpi:nth-child(4){animation-delay:.36s}
+.kpi-label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted)}
+.kpi-value{font-family:var(--serif);font-weight:900;font-size:32px;line-height:1.05;margin:7px 0 3px;
+  font-variant-numeric:tabular-nums}
+.kpi.good .kpi-value{color:var(--secure)}.kpi.crit .kpi-value{color:var(--breach)}
+.kpi.warn .kpi-value{color:var(--warn)}.kpi.accent .kpi-value{color:var(--accent)}
 .kpi-sub{font-size:12px;color:var(--muted)}
 @keyframes rise{to{opacity:1;transform:none}}
 
 .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-top:14px}
 @media(max-width:820px){.grid{grid-template-columns:1fr}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:17px 19px;min-width:0}
-.panel h3{font-weight:800;font-size:15px;margin:0 0 3px}
-.panel .hint{color:var(--muted);font-size:12.5px;margin:0 0 13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.panel h3{font-family:var(--serif);font-weight:900;font-size:19px;margin:0 0 3px;letter-spacing:-.01em}
+.panel .hint{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 
-ul.tl{list-style:none;margin:0;padding:0}
-.tl-row{display:grid;grid-template-columns:16px 138px 1fr;gap:10px;align-items:start;padding:8px 0;
-  border-bottom:1px dashed var(--line);opacity:0;transform:translateX(-8px);
-  animation:slidein .5s ease-out forwards;animation-delay:calc(.5s + var(--i)*.09s)}
+/* evidence log */
+ul.tl{list-style:none;margin:0;padding:0;position:relative}
+.tl-row{display:grid;grid-template-columns:26px 14px 134px 1fr;gap:9px;align-items:start;padding:8px 0;
+  border-bottom:1px solid var(--line);opacity:0;transform:translateX(-7px);
+  animation:slide .5s ease-out forwards;animation-delay:calc(.45s + var(--i)*.085s)}
 .tl-row:last-child{border-bottom:0}
-@keyframes slidein{to{opacity:1;transform:none}}
-.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);margin-top:5px}
-.tl-label{font-weight:700;font-size:13.5px}
+@keyframes slide{to{opacity:1;transform:none}}
+.tl-num{font-family:var(--mono);font-size:11px;color:var(--rule);margin-top:3px}
+.tl-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);margin-top:6px;outline:3px solid var(--panel)}
+.tl-label{font-weight:600;font-size:13.5px}
 .tl-note{color:var(--muted);font-size:13px;min-width:0}
 .tl-row.pass .tl-dot{background:var(--secure)}
 .tl-row.fail .tl-dot{background:var(--breach)}
-.tl-row.recover{background:color-mix(in srgb,var(--warn) 13%,transparent);border-radius:9px;
-  padding-inline:8px;border-bottom-color:transparent;box-shadow:inset 3px 0 0 var(--warn)}
-.tl-row.recover .tl-dot{background:var(--warn);animation:ping 1.4s ease-out infinite}
+.tl-row.recover{background:color-mix(in srgb,var(--warn) 11%,transparent);border-radius:8px;
+  padding-inline:7px;border-bottom-color:transparent;box-shadow:inset 3px 0 0 var(--warn)}
+.tl-row.recover .tl-dot{background:var(--warn);animation:ping 1.5s ease-out infinite}
 .tl-row.recover .tl-note{color:var(--warn);font-weight:600}
-@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--warn) 60%,transparent)}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--warn) 55%,transparent)}
   70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
 .vm-group{margin-bottom:12px}
-.vm-group h4{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 7px}
+.vm-group h4{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 7px}
 .vm-group ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
 .vm-group li{display:flex;align-items:center;gap:8px;font-size:13px}
-.vm-check{width:17px;height:17px;flex:none;border-radius:5px;display:grid;place-items:center;font-size:11px;color:#071018;background:var(--secure)}
-.vm-group li.bad .vm-check{background:var(--breach);color:#fff}
+.vm-check{width:17px;height:17px;flex:none;border-radius:5px;display:grid;place-items:center;font-size:11px;color:#fff;background:var(--secure)}
+.vm-group li.bad .vm-check{background:var(--breach)}
 .vm-name{flex:1 1 auto;min-width:0}
 .vm-tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
 .vm-tag.closed{color:var(--secure);font-weight:600}
 
 .diffwrap{margin-top:14px}
-h2.sec{font-weight:800;font-size:16px;margin:26px 0 10px}
-pre.diff{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:15px;overflow-x:auto;
+h2.sec{font-family:var(--serif);font-weight:900;font-size:21px;margin:26px 0 10px;letter-spacing:-.01em}
+pre.diff{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px;overflow-x:auto;
   font-family:var(--mono);font-size:12.5px;line-height:1.55;margin:0}
 .dl{display:block;white-space:pre}
 .dl.ins{color:var(--secure)}.dl.del{color:var(--breach)}.dl.hunk{color:var(--accent)}
 
-.loop{margin-top:16px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted)}
-.loop b{color:var(--fg)}.loop .arrow{color:var(--accent)}
+.loop{margin-top:16px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+.loop b{color:var(--ink)}.loop .arrow{color:var(--accent)}
 .foot{color:var(--muted);font-size:11.5px;margin-top:22px;font-family:var(--mono)}
 
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important}
   .kpi,.tl-row{opacity:1!important;transform:none!important}
-  .seal .ring,.seal .tick{stroke-dashoffset:0!important}
+  .stamp{opacity:.92!important;transform:rotate(-9deg)!important}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="strip">
+    <span><b>TenantGuard</b> // Incident Dossier</span>
+    <span>Case <span class="file">{{CASE}}</span> &nbsp;·&nbsp; Status <b>{{STATUS_WORD}}</b></span>
+  </div>
   <div class="hero">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">Incident · {{CASE}} · {{STATUS_WORD}}</div>
-        <h1>Cross-tenant read, sealed.</h1>
-        <p>An authenticated user from one tenant could read another tenant's invoice. TenantGuard
-        reproduced the leak, caught its own first fix breaking legitimate same-tenant access, reverted,
-        and applied a tenant-scoped fix — verified by tests, not by the model.</p>
-        <div class="status">
-          <span class="b-old">GET /invoices/inv-a1 as t2 → 200 OK</span>
-          <span class="arrow">→</span>
-          <span class="b-new"><span class="lock">\U0001F512</span> 403 Forbidden</span>
-        </div>
-      </div>
-      <svg class="seal" viewBox="0 0 64 64" aria-hidden="true">
-        <path class="body" d="M32 4l22 8v16c0 14-9.4 23-22 29C19.4 51 10 42 10 28V12l22-8z"/>
-        <path class="ring" d="M32 4l22 8v16c0 14-9.4 23-22 29C19.4 51 10 42 10 28V12l22-8z"/>
-        <path class="tick" d="M22 32l7 7 13-15"/>
-      </svg>
+    <div class="stamp">{{STATUS_WORD}}<small>verified by tests</small></div>
+    <h1>Cross-tenant read, sealed.</h1>
+    <p>An authenticated user from one tenant could read another tenant's invoice. TenantGuard
+    reproduced the leak, caught its own first fix breaking legitimate same-tenant access, reverted,
+    and applied a tenant-scoped fix — verified by a deterministic verifier, not by the model.</p>
+    <div class="status">
+      <span class="b-old">GET /invoices/inv-a1 as t2 → 200 OK</span>
+      <span class="arrow">→</span>
+      <span class="b-new"><span class="lock">\U0001F512</span> 403 Forbidden</span>
     </div>
   </div>
 
@@ -316,8 +314,8 @@ pre.diff{background:var(--surface-2);border:1px solid var(--line);border-radius:
 
   <div class="grid">
     <div class="panel">
-      <h3>Remediation timeline</h3>
-      <p class="hint">Every row is real backend state. Recovery is highlighted · recovery: {{RECOVERED}}.</p>
+      <h3>Remediation log</h3>
+      <p class="hint">Every entry is real backend state · recovery: {{RECOVERED}}.</p>
       <ul class="tl">{{TIMELINE}}</ul>
     </div>
     <div class="panel">
