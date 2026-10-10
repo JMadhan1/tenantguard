@@ -121,11 +121,25 @@ def _finish(state: RunState, status: str, phase: str) -> dict:
     diff = wt.diff()
     with open(os.path.join(outdir, "patch.diff"), "w", encoding="utf-8", newline="\n") as f:
         f.write(diff)
+    brain = state["brain"]
+    llm = None
+    if hasattr(brain, "input_tokens"):
+        from .pricing import cost_usd
+        model = getattr(brain, "model", None)
+        llm = {
+            "model": model,
+            "quality": getattr(brain, "quality", None),
+            "input_tokens": brain.input_tokens,
+            "output_tokens": brain.output_tokens,
+            "cost_usd": cost_usd(model, brain.input_tokens, brain.output_tokens) if model else None,
+            "neatlogs": getattr(brain, "neatlogs_enabled", False),
+        }
     report = {
         "run_id": run_id,
         "case_id": state["case_id"],
         "status": status,
-        "brain": getattr(state["brain"], "kind", "?"),
+        "brain": getattr(brain, "kind", "?"),
+        "llm": llm,
         "attempts": state.get("attempt", 0),
         "baseline": {"passed": len(state["baseline_passed"]), "failed": len(state["baseline_failed"])},
         "verdict": state.get("verdict"),

@@ -28,6 +28,8 @@ def main():
     ap.add_argument("case_id", nargs="?", default="invoicely-idor-001")
     ap.add_argument("--live", action="store_true", help="use a real Claude model")
     ap.add_argument("--model", default=None)
+    ap.add_argument("--quality", choices=["baseline", "improved"], default="improved",
+                    help="live prompt quality for the before/after comparison")
     ap.add_argument("--correct-first", action="store_true",
                     help="offline brain fixes correctly on attempt 1 (no recovery demo)")
     ap.add_argument("--max-attempts", type=int, default=3)
@@ -37,6 +39,7 @@ def main():
         args.case_id,
         offline=not args.live,
         model=args.model,
+        quality=args.quality,
         naive_first=not args.correct_first,
         max_attempts=args.max_attempts,
     )

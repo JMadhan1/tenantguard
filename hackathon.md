@@ -26,6 +26,15 @@
 - Safety boundaries written (`docs/SAFETY.md`).
 - **Next (P2):** deterministic tools + verifier (both security AND functionality must pass).
 
+### 2026-10-10 — P2–P5 agent + neatlogs wiring + dashboard (completed, tested)
+- Deterministic tools + **verifier** (success = security AND functionality tests pass), scope guard (no test edits), sandboxed pytest runner. P2 test: baseline→incomplete, correct fix→fixed, naive fix→regressed, guards block. ✅
+- **LangGraph agent** (`graph.py`) with conditional recovery edges; `OfflineBrain` (scripted) + `LLMBrain` (Claude, neatlogs-wrapped, baseline/improved prompt for the before/after). `run_case.py` entrypoint.
+- **Full offline run reaches `fixed` in 2 attempts after a real observed regression + revert** (no API key). 5 offline agent integration tests pass.
+- neatlogs wired via `neatlogs.wrap(Anthropic())` in `LLMBrain`; usage/cost recorded per run for cost-per-fix.
+- **Polished dashboard** (`report.py` → `docs/report.html`): KPI tiles, recovery-highlighted timeline, security/functionality verdict matrix, patch diff; theme-aware, responsive (verified desktop + mobile).
+- Docs: README, BUSINESS_PLAN (cfo.ai), EVIDENCE index, SETUP, DEMO_SCRIPT, BUILD_IN_PUBLIC, ENTIRE.
+- **Pending (needs operator):** live traced runs (ANTHROPIC + NEATLOGS keys), Entire checkpoints, cfo.ai access, demo video, #neatHack posts, public repo push.
+
 ## Submission (tracking)
 - [ ] Agent completes the remediation start→finish
 - [ ] neatlogs before/after + trace links

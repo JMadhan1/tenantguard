@@ -10,11 +10,12 @@ from .graph import build_graph
 
 
 def run_case(case_id: str, *, offline: bool = True, model: str | None = None,
-             naive_first: bool = True, max_attempts: int = 3, run_id: str | None = None,
-             brain=None) -> dict:
+             quality: str = "improved", naive_first: bool = True, max_attempts: int = 3,
+             run_id: str | None = None, brain=None) -> dict:
     if brain is None:
         brain = OfflineBrain(naive_first=naive_first) if offline else LLMBrain(
-            model=model or os.environ.get("TENANTGUARD_MODEL", "claude-sonnet-5-5"))
+            model=model or os.environ.get("TENANTGUARD_MODEL", "claude-sonnet-5-5"),
+            quality=quality)
     graph = build_graph()
     run_id = run_id or f"run-{uuid.uuid4().hex[:8]}"
     initial = {
@@ -29,4 +30,10 @@ def run_case(case_id: str, *, offline: bool = True, model: str | None = None,
     if wt is not None:
         final["_diff"] = wt.diff()
         wt.cleanup()
+    if getattr(brain, "neatlogs_enabled", False):
+        try:
+            import neatlogs
+            neatlogs.flush()
+        except Exception:
+            pass
     return final
