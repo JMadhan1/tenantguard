@@ -44,7 +44,8 @@
 - **neatlogs tracing was OFF** (`neatlogs: False`) because `NEATLOGS_API_KEY` is not yet set — needed for the required trace evidence.
 
 ### 2026-10-11 — Entire + hosting + security (in progress)
-- Installed the **Entire CLI** (0.11.4, via Scoop) and signed in; `entire enable --agent claude-code` installed 9 hooks, checkpoints sync to `origin`.
+- Installed the **Entire CLI** (0.11.4, via Scoop) and signed in; `entire enable --agent claude-code` installed 9 hooks, checkpoints sync to `origin`. Repo connected on entire.io (GitHub App).
+- **Entire checkpoint captured and synced:** ID `01M4N1E31ZDTBN9KSD51Z1640Z` on commit `41fa5d7` (secret-scrubbed transcript; verified no key in the checkpoint before pushing). Link: https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d
 - Hosted the dashboard on **Vercel** at **https://tenantguard.jmadhan.me** (custom domain, auto SSL) with hardened security: strict CSP (no inline JS/CSS), HSTS preload, X-Frame-Options DENY, locked Permissions-Policy, COOP/CORP, `/.well-known/security.txt`.
 - neatlogs tracing CONFIRMED on a live Bedrock run (`neatlogs: true`), evidence in `docs/evidence/`.
 
