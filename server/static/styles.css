@@ -120,6 +120,24 @@ pre.diff{background:var(--panel2);border:1px solid var(--line);border-radius:10p
 
 .safety ul{margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:9px}
 .safety li b{color:var(--ink)}
-.foot{color:var(--muted);font-size:12px;margin-top:32px;font-family:var(--mono);text-align:center}
 
-@media (prefers-reduced-motion:reduce){*{animation:none!important}.tl-row{opacity:1!important;transform:none!important}}
+/* info cards (not links) */
+.card.nolink{cursor:default}
+.card.nolink:hover{transform:none;border-color:var(--line);box-shadow:none}
+
+/* gentle staggered entrance on load */
+.step,.who .card{opacity:0;transform:translateY(12px);animation:rise .55s ease-out forwards}
+.steps .step:nth-child(2),.who .card:nth-child(2){animation-delay:.1s}
+.steps .step:nth-child(3),.who .card:nth-child(3){animation-delay:.2s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* footer / maker */
+.tagline{font-family:var(--display);font-weight:700;font-size:20px;text-align:center;margin:36px 0 16px;letter-spacing:-.01em}
+.maker{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  border-top:1px solid var(--line);padding-top:16px;font-size:13px;color:var(--muted)}
+.maker b{color:var(--ink)}
+.m-links{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px}
+.m-links a{color:var(--accent)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important}
+  .tl-row,.step,.who .card{opacity:1!important;transform:none!important}}
