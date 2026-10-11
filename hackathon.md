@@ -43,6 +43,11 @@
 - Finding: Opus 4.6 fixes correctly in 1 attempt even on the weak prompt, so it does not trip the recovery trap naturally. **Recovery is demonstrated by the offline labeled fault-injection run** (deterministic regression→revert→fix), which the brief explicitly permits.
 - **neatlogs tracing was OFF** (`neatlogs: False`) because `NEATLOGS_API_KEY` is not yet set — needed for the required trace evidence.
 
+### 2026-10-11 — Entire + hosting + security (in progress)
+- Installed the **Entire CLI** (0.11.4, via Scoop) and signed in; `entire enable --agent claude-code` installed 9 hooks, checkpoints sync to `origin`.
+- Hosted the dashboard on **Vercel** at **https://tenantguard.jmadhan.me** (custom domain, auto SSL) with hardened security: strict CSP (no inline JS/CSS), HSTS preload, X-Frame-Options DENY, locked Permissions-Policy, COOP/CORP, `/.well-known/security.txt`.
+- neatlogs tracing CONFIRMED on a live Bedrock run (`neatlogs: true`), evidence in `docs/evidence/`.
+
 ## Submission (tracking)
 - [x] Agent completes the remediation start→finish (live on Bedrock Opus 4.6, status `fixed`)
 - [~] neatlogs: tracing CONFIRMED working (live run `neatlogs: true`, evidence in `docs/evidence/live-bedrock-run.json`); trace dashboard links to be captured by operator
