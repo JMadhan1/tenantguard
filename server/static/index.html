@@ -4,95 +4,102 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TenantGuard</title>
-<meta name="description" content="A security agent you can trust to run unattended. It fixes tenant-isolation (IDOR) bugs and recovers from its own mistakes — run it live.">
+<meta name="description" content="An AI security agent that fixes access-control bugs and catches its own mistakes. Watch it fix a real tenant-isolation leak, live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <div class="wrap">
   <div class="strip">
-    <span><b>TenantGuard</b> // self-verifying security remediation</span>
+    <span><b>TenantGuard</b> // AI security remediation</span>
     <span>team AI LONE STAR &nbsp;·&nbsp; neatHack 2026</span>
   </div>
 
   <div class="hero">
-    <h1>Fix the leak. Catch yourself. Prove it.</h1>
-    <p class="lede">TenantGuard is a security agent you can trust to run unattended. It reproduces a
-      tenant-isolation (IDOR) leak, writes a fix, catches its own fix if it breaks legitimate access,
-      recovers, and proves the leak is closed — verified by tests, not by the model. Run it right here.</p>
+    <div class="scan" aria-hidden="true"></div>
+    <div class="eyebrow"><span class="led"></span>Live agent · no signup · ~15 seconds</div>
+    <h1>An AI agent that fixes security bugs — and catches its own mistakes.</h1>
+    <p class="lede">One of the most common security flaws lets <b>one customer read another customer's data</b>
+      (a “tenant-isolation” / IDOR bug). Fixing it is risky: a careless patch can block the leak but also
+      break legitimate access. <b>TenantGuard</b> fixes it <i>and</i> proves it didn't break anything — by
+      running the tests itself, not by trusting the AI.</p>
     <div class="cta">
-      <button class="run" id="runBtn">▶ Run TenantGuard live</button>
+      <button class="run" id="runBtn">▶ Run the live demo</button>
       <span class="statusline" id="statusLine"><span class="dot"></span>checking…</span>
     </div>
-    <div class="badges">
-      <span class="badge">Claude Opus 4.6 · AWS Bedrock</span>
-      <span class="badge">traced in neatlogs</span>
-      <span class="badge">LangGraph</span>
-      <span class="badge">deterministic verifier</span>
-      <span class="badge">never auto-merges</span>
-    </div>
+    <p class="reassure">Runs a real fix on a <b>built-in sample app</b> using Claude Opus 4.6 on AWS Bedrock.
+      It never touches your code — <a href="#safety">why ↓</a></p>
   </div>
 
+  <h2 class="sec">How it works — in 3 steps</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h4>The setup</h4>
+      <p>A sample invoicing app has a planted bug: <b>any logged-in user can read any tenant's invoices</b> — a cross-tenant leak.</p></div>
+    <div class="step"><div class="step-num">2</div><h4>The agent runs</h4>
+      <p>TenantGuard reproduces the leak, writes a fix, and re-runs the tests. If its fix <b>breaks legitimate access</b>, it undoes it and tries again.</p></div>
+    <div class="step"><div class="step-num">3</div><h4>The proof</h4>
+      <p>“Fixed” means <b>both</b>: cross-tenant access is blocked <b>and</b> legitimate access still works — decided by tests, not the AI.</p></div>
+  </div>
+
+  <h2 class="sec">Watch it work <span class="sub">— press Run above</span></h2>
   <div class="live">
-    <div class="panel">
-      <h3>Remediation — live</h3>
-      <p class="hint" id="modeHint">Press Run. Every row below is real backend state, streamed as it happens.</p>
-      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — hit “Run TenantGuard live”.</li></ul>
+    <div class="panel console" id="console">
+      <h3>What the agent is doing</h3>
+      <p class="hint" id="modeHint">Each line below is real, streamed live as the agent works.</p>
+      <div class="alarm" id="alarm" hidden></div>
+      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — press “▶ Run the live demo” above.</li></ul>
     </div>
     <div class="panel">
-      <h3>Verdict</h3>
-      <p class="hint">Success needs <b>both</b> security and functionality to pass — the verifier owns this, not the model.</p>
+      <h3>The verdict</h3>
+      <p class="hint">A deterministic checker — not the AI — decides success.</p>
+      <div class="summary" id="summary" hidden></div>
       <div class="verdict" id="verdict">
         <div class="stamp" id="stamp">SEALED</div>
         <div id="kv"></div>
-        <pre class="diff" id="diff" hidden></pre>
+        <details id="diffWrap" hidden><summary>See the exact code change</summary><pre class="diff" id="diff"></pre></details>
       </div>
-      <p class="empty" id="verdictEmpty">The verdict appears when the run finishes.</p>
+      <p class="empty" id="verdictEmpty">The result appears here when the run finishes.</p>
     </div>
   </div>
 
-  <h2 class="sec">Before / after — why the verifier matters</h2>
+  <h2 class="sec">Why the self-check matters</h2>
+  <p class="plain">A naive AI agent “fixes” the leak but silently breaks legitimate access — and calls it done. TenantGuard's verifier won't accept that.</p>
   <table class="ba">
-    <thead><tr><th>&nbsp;</th><th>Naive agent</th><th>TenantGuard</th></tr></thead>
+    <thead><tr><th>&nbsp;</th><th>Naive AI fix</th><th>TenantGuard</th></tr></thead>
     <tbody>
-      <tr><td>Cross-tenant read blocked (403)</td><td class="center">✅</td><td class="center">✅</td></tr>
-      <tr><td>Legitimate same-tenant access</td><td class="center">❌ regressed</td><td class="center">✅ preserved</td></tr>
-      <tr><td>Outcome</td><td class="center">needs_review (false fix)</td><td class="center"><b>fixed</b></td></tr>
-      <tr><td>Cost / fix (Opus 4.6 · Bedrock)</td><td class="center">—</td><td class="center"><b>~$0.005</b></td></tr>
+      <tr><td>Blocks cross-tenant access</td><td class="center">✅</td><td class="center">✅</td></tr>
+      <tr><td>Keeps legitimate access working</td><td class="center">❌ broken</td><td class="center">✅ preserved</td></tr>
+      <tr><td>Result</td><td class="center">ships a broken “fix”</td><td class="center"><b>verified fix</b></td></tr>
+      <tr><td>Cost per fix (Opus 4.6 · Bedrock)</td><td class="center">—</td><td class="center"><b>~$0.005</b></td></tr>
     </tbody>
   </table>
 
-  <h2 class="sec">Everything, in one place</h2>
+  <h2 class="sec">See more</h2>
   <div class="grid">
     <a class="card" href="https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a" target="_blank" rel="noopener">
-      <div class="tag">Demo</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and all three tools.</p></a>
+      <div class="tag">Demo</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and the three tools.</p></a>
     <a class="card" href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">
-      <div class="tag">Code</div><h4>Public repo</h4><p>Agent, fixture, verifier, tests — fresh-clone verified.</p></a>
+      <div class="tag">Code</div><h4>Open source</h4><p>The agent, the sample app, the verifier, the tests.</p></a>
     <a class="card" href="https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d" target="_blank" rel="noopener">
-      <div class="tag">Entire</div><h4>Checkpoint 📌</h4><p>How &amp; why the fix was built, tied to the commit.</p></a>
+      <div class="tag">Entire</div><h4>Build history 📌</h4><p>How &amp; why the code was written, tied to the commit.</p></a>
     <a class="card" href="/neatlogs-trace.png" target="_blank" rel="noopener">
-      <div class="tag">neatlogs</div><h4>Live trace 🔎</h4><p>Every model + tool call of the real Bedrock run.</p></a>
+      <div class="tag">neatlogs</div><h4>Live trace 🔎</h4><p>Every model + tool call of a real run.</p></a>
     <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/evidence/cfo-tenantguard-plan.xlsx" target="_blank" rel="noopener">
-      <div class="tag">cfo.ai</div><h4>Business plan 💰</h4><p>Measured $0.005/fix → pricing, margin, runway.</p></a>
+      <div class="tag">cfo.ai</div><h4>Business model 💰</h4><p>Measured cost → pricing, margin, runway.</p></a>
     <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/EVIDENCE.md" target="_blank" rel="noopener">
-      <div class="tag">Evidence</div><h4>Full index</h4><p>Every claim mapped to a checkable artifact.</p></a>
+      <div class="tag">Evidence</div><h4>Proof index</h4><p>Every claim mapped to a checkable artifact.</p></a>
   </div>
 
-  <h2 class="sec">Watch the walkthrough</h2>
-  <div class="loomwrap">
-    <iframe src="https://www.loom.com/embed/5a96c2f1a02e4450875d58c6affd943a" allowfullscreen title="TenantGuard demo"></iframe>
-  </div>
-
-  <h2 class="sec">Safe by design</h2>
-  <div class="panel">
-    <p style="margin:0;font-size:14px;color:var(--muted)">
-      This runs TenantGuard on a built-in synthetic case — <b>never your code or repos</b> (executing untrusted
-      code is exactly what a security tool must not do). The agent edits only a disposable worktree, never
-      commits or merges, uses no model-generated shell, and a deterministic verifier decides success. Runs are
-      rate-limited with a daily cap. All data is synthetic; no secrets.
-    </p>
+  <h2 class="sec" id="safety">Is this safe?</h2>
+  <div class="panel safety">
+    <ul>
+      <li><b>It never runs your code.</b> The demo only fixes a built-in synthetic sample app — never a visitor's repo (executing untrusted code is exactly what a security tool must not do).</li>
+      <li><b>It can't break anything.</b> The agent edits a throwaway copy, never commits, pushes, or merges, and never runs AI-generated shell commands.</li>
+      <li><b>Tests decide, not the AI.</b> A fix only counts if cross-tenant access is blocked <i>and</i> legitimate access still passes.</li>
+      <li><b>Bounded.</b> Rate-limited with a daily cap; all data is synthetic; no secrets.</li>
+    </ul>
   </div>
 
   <p class="foot">TenantGuard · reproduce · fix · catch yourself · prove it · team AI LONE STAR · neatHack 2026</p>
