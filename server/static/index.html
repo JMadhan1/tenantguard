@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TenantGuard</title>
+<meta name="description" content="A security agent you can trust to run unattended. It fixes tenant-isolation (IDOR) bugs and recovers from its own mistakes — run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="strip">
+    <span><b>TenantGuard</b> // self-verifying security remediation</span>
+    <span>team AI LONE STAR &nbsp;·&nbsp; neatHack 2026</span>
+  </div>
+
+  <div class="hero">
+    <h1>Fix the leak. Catch yourself. Prove it.</h1>
+    <p class="lede">TenantGuard is a security agent you can trust to run unattended. It reproduces a
+      tenant-isolation (IDOR) leak, writes a fix, catches its own fix if it breaks legitimate access,
+      recovers, and proves the leak is closed — verified by tests, not by the model. Run it right here.</p>
+    <div class="cta">
+      <button class="run" id="runBtn">▶ Run TenantGuard live</button>
+      <span class="statusline" id="statusLine"><span class="dot"></span>checking…</span>
+    </div>
+    <div class="badges">
+      <span class="badge">Claude Opus 4.6 · AWS Bedrock</span>
+      <span class="badge">traced in neatlogs</span>
+      <span class="badge">LangGraph</span>
+      <span class="badge">deterministic verifier</span>
+      <span class="badge">never auto-merges</span>
+    </div>
+  </div>
+
+  <div class="live">
+    <div class="panel">
+      <h3>Remediation — live</h3>
+      <p class="hint" id="modeHint">Press Run. Every row below is real backend state, streamed as it happens.</p>
+      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — hit “Run TenantGuard live”.</li></ul>
+    </div>
+    <div class="panel">
+      <h3>Verdict</h3>
+      <p class="hint">Success needs <b>both</b> security and functionality to pass — the verifier owns this, not the model.</p>
+      <div class="verdict" id="verdict">
+        <div class="stamp" id="stamp">SEALED</div>
+        <div id="kv"></div>
+        <pre class="diff" id="diff" hidden></pre>
+      </div>
+      <p class="empty" id="verdictEmpty">The verdict appears when the run finishes.</p>
+    </div>
+  </div>
+
+  <h2 class="sec">Before / after — why the verifier matters</h2>
+  <table class="ba">
+    <thead><tr><th>&nbsp;</th><th>Naive agent</th><th>TenantGuard</th></tr></thead>
+    <tbody>
+      <tr><td>Cross-tenant read blocked (403)</td><td class="center">✅</td><td class="center">✅</td></tr>
+      <tr><td>Legitimate same-tenant access</td><td class="center">❌ regressed</td><td class="center">✅ preserved</td></tr>
+      <tr><td>Outcome</td><td class="center">needs_review (false fix)</td><td class="center"><b>fixed</b></td></tr>
+      <tr><td>Cost / fix (Opus 4.6 · Bedrock)</td><td class="center">—</td><td class="center"><b>~$0.005</b></td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">Everything, in one place</h2>
+  <div class="grid">
+    <a class="card" href="https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a" target="_blank" rel="noopener">
+      <div class="tag">Demo</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and all three tools.</p></a>
+    <a class="card" href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">
+      <div class="tag">Code</div><h4>Public repo</h4><p>Agent, fixture, verifier, tests — fresh-clone verified.</p></a>
+    <a class="card" href="https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d" target="_blank" rel="noopener">
+      <div class="tag">Entire</div><h4>Checkpoint 📌</h4><p>How &amp; why the fix was built, tied to the commit.</p></a>
+    <a class="card" href="/neatlogs-trace.png" target="_blank" rel="noopener">
+      <div class="tag">neatlogs</div><h4>Live trace 🔎</h4><p>Every model + tool call of the real Bedrock run.</p></a>
+    <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/evidence/cfo-tenantguard-plan.xlsx" target="_blank" rel="noopener">
+      <div class="tag">cfo.ai</div><h4>Business plan 💰</h4><p>Measured $0.005/fix → pricing, margin, runway.</p></a>
+    <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/EVIDENCE.md" target="_blank" rel="noopener">
+      <div class="tag">Evidence</div><h4>Full index</h4><p>Every claim mapped to a checkable artifact.</p></a>
+  </div>
+
+  <h2 class="sec">Watch the walkthrough</h2>
+  <div class="loomwrap">
+    <iframe src="https://www.loom.com/embed/5a96c2f1a02e4450875d58c6affd943a" allowfullscreen title="TenantGuard demo"></iframe>
+  </div>
+
+  <h2 class="sec">Safe by design</h2>
+  <div class="panel">
+    <p style="margin:0;font-size:14px;color:var(--muted)">
+      This runs TenantGuard on a built-in synthetic case — <b>never your code or repos</b> (executing untrusted
+      code is exactly what a security tool must not do). The agent edits only a disposable worktree, never
+      commits or merges, uses no model-generated shell, and a deterministic verifier decides success. Runs are
+      rate-limited with a daily cap. All data is synthetic; no secrets.
+    </p>
+  </div>
+
+  <p class="foot">TenantGuard · reproduce · fix · catch yourself · prove it · team AI LONE STAR · neatHack 2026</p>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

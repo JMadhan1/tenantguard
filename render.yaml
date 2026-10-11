@@ -1,0 +1,30 @@
+# Render blueprint for the TenantGuard live app.
+# Deploy: push to GitHub, then on render.com → New → Blueprint → pick this repo.
+# Set the secret env vars (AWS_* and NEATLOGS_API_KEY) in the Render dashboard.
+services:
+  - type: web
+    name: tenantguard
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: AWS_REGION
+        value: ap-south-1
+      - key: TENANTGUARD_MODEL
+        value: global.anthropic.claude-opus-4-6-v1
+      - key: TENANTGUARD_DAILY_LIVE_CAP
+        value: "100"
+      - key: TENANTGUARD_IP_COOLDOWN
+        value: "20"
+      # secrets — set these in the Render dashboard (do NOT commit):
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: NEATLOGS_API_KEY
+        sync: false
