@@ -20,3 +20,7 @@ runs.db
 # os
 .DS_Store
 Thumbs.db
+
+# vercel
+.vercel
+site/.vercel

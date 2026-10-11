@@ -13,6 +13,8 @@
 
 **Team AI LONE STAR** · led by **Madhan J**
 
+**Live dashboard:** https://site-black-six-51.vercel.app (hardened: strict CSP, HSTS, no inline JS/CSS)
+
 </div>
 
 ---

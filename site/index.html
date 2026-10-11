@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TenantGuard Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="strip">
+    <span><b>TenantGuard</b> // Incident Dossier</span>
+    <span>Case <span class="file">invoicely-idor-001</span> &nbsp;·&nbsp; Status <b>SEALED</b></span>
+  </div>
+  <div class="hero">
+    <div class="stamp">SEALED<small>verified by tests</small></div>
+    <h1>Cross-tenant read, sealed.</h1>
+    <p>An authenticated user from one tenant could read another tenant's invoice. TenantGuard
+    reproduced the leak, caught its own first fix breaking legitimate same-tenant access, reverted,
+    and applied a tenant-scoped fix — verified by a deterministic verifier, not by the model.</p>
+    <div class="status">
+      <span class="b-old">GET /invoices/inv-a1 as t2 → 200 OK</span>
+      <span class="arrow">→</span>
+      <span class="b-new"><span class="lock">🔒</span> 403 Forbidden</span>
+    </div>
+  </div>
+  <div class="kpis"><div class="kpi good"><div class="kpi-label">Verdict</div><div class="kpi-value">Fixed</div><div class="kpi-sub">security + functionality</div></div><div class="kpi good"><div class="kpi-label">Security</div><div class="kpi-value">Pass</div><div class="kpi-sub">cross-tenant reads blocked</div></div><div class="kpi good"><div class="kpi-label">Functionality</div><div class="kpi-value">Pass</div><div class="kpi-sub">legitimate access preserved</div></div><div class="kpi warn"><div class="kpi-label">Attempts</div><div class="kpi-value" data-count="2">2</div><div class="kpi-sub">1 regression recovered</div></div></div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Remediation log</h3>
+      <p class="hint">Every entry is real backend state · recovery: yes — caught &amp; reverted.</p>
+      <ul class="tl"><li class="tl-row step" style="--i:0"><span class="tl-num">01</span><span class="tl-dot"></span><span class="tl-label">Intake</span><span class="tl-note">case=invoicely-idor-001</span></li>
+<li class="tl-row step" style="--i:1"><span class="tl-num">02</span><span class="tl-dot"></span><span class="tl-label">Baseline tests</span><span class="tl-note">6 passed / 2 failed</span></li>
+<li class="tl-row step" style="--i:2"><span class="tl-num">03</span><span class="tl-dot"></span><span class="tl-label">Inspect code</span><span class="tl-note">read [&#x27;invoicely/app.py&#x27;, &#x27;invoicely/store.py&#x27;]</span></li>
+<li class="tl-row step" style="--i:3"><span class="tl-num">04</span><span class="tl-dot"></span><span class="tl-label">Propose patch</span><span class="tl-note">attempt 1: attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)</span></li>
+<li class="tl-row step" style="--i:4"><span class="tl-num">05</span><span class="tl-dot"></span><span class="tl-label">Apply in worktree</span><span class="tl-note">invoicely/app.py</span></li>
+<li class="tl-row fail" style="--i:5"><span class="tl-num">06</span><span class="tl-dot"></span><span class="tl-label">Verify</span><span class="tl-note">Regression: a passing test broke (functionality=False)</span></li>
+<li class="tl-row recover" style="--i:6"><span class="tl-num">07</span><span class="tl-dot"></span><span class="tl-label">Classify + revert</span><span class="tl-note">Reverted the regressing patch — recovery</span></li>
+<li class="tl-row step" style="--i:7"><span class="tl-num">08</span><span class="tl-dot"></span><span class="tl-label">Propose patch</span><span class="tl-note">attempt 2: tenant-scoped fix</span></li>
+<li class="tl-row step" style="--i:8"><span class="tl-num">09</span><span class="tl-dot"></span><span class="tl-label">Apply in worktree</span><span class="tl-note">invoicely/app.py</span></li>
+<li class="tl-row pass" style="--i:9"><span class="tl-num">10</span><span class="tl-dot"></span><span class="tl-label">Verify</span><span class="tl-note">Security and functionality both pass</span></li>
+<li class="tl-row pass" style="--i:10"><span class="tl-num">11</span><span class="tl-dot"></span><span class="tl-label">Export report</span><span class="tl-note">fixed</span></li></ul>
+    </div>
+    <div class="panel">
+      <h3>Verdict</h3>
+      <p class="hint">Success needs <b>both</b> groups green. The deterministic verifier owns this, not the model.</p>
+      <div class="vm-group"><h4>Security — access denied</h4><ul><li class="ok"><span class="vm-check">✓</span><span class="vm-name">cross tenant read blocked carol to t1</span><span class="vm-tag closed">closed the leak</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">cross tenant read blocked alice to t2</span><span class="vm-tag closed">closed the leak</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">unauthenticated denied</span><span class="vm-tag ok">pass</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">invalid token denied</span><span class="vm-tag ok">pass</span></li></ul></div><div class="vm-group"><h4>Functionality — access preserved</h4><ul><li class="ok"><span class="vm-check">✓</span><span class="vm-name">owner reads own invoice</span><span class="vm-tag ok">pass</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">same tenant other user allowed</span><span class="vm-tag ok">pass</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">carol reads own invoice</span><span class="vm-tag ok">pass</span></li><li class="ok"><span class="vm-check">✓</span><span class="vm-name">unknown invoice not found</span><span class="vm-tag ok">pass</span></li></ul></div>
+    </div>
+  </div>
+  <div class="diffwrap">
+    <h2 class="sec">The patch it applied</h2>
+    <pre class="diff"><span class="dl ">--- a/invoicely/app.py</span>
+<span class="dl ">+++ b/invoicely/app.py</span>
+<span class="dl hunk">@@ -36,9 +36,8 @@</span>
+<span class="dl ">         invoice = data[&quot;invoices&quot;].get(invoice_id)</span>
+<span class="dl ">         if invoice is None:</span>
+<span class="dl ">             raise HTTPException(status_code=404, detail=&quot;invoice not found&quot;)</span>
+<span class="dl del">-        # SECURITY BUG (broken object-level authorization / IDOR):</span>
+<span class="dl del">-        # the invoice is returned without checking that it belongs to the</span>
+<span class="dl del">-        # caller&#x27;s tenant, so any authenticated user can read any invoice.</span>
+<span class="dl ins">+        if invoice[&quot;tenant_id&quot;] != user[&quot;tenant_id&quot;]:</span>
+<span class="dl ins">+            raise HTTPException(status_code=403, detail=&quot;forbidden&quot;)</span>
+<span class="dl ">         return invoice</span>
+<span class="dl "> </span>
+<span class="dl ">     return app</span></pre>
+  </div>
+  <div class="loop"><b>neatlogs</b> observes <span class="arrow">→</span> <b>Entire</b> proves how it was built
+    <span class="arrow">→</span> <b>cfo.ai</b> prices the cost per fix &nbsp;·&nbsp; offline scripted run (no LLM) — token &amp; cost come from a live run</div>
+  <p class="foot">run run-ae0d9a9e · 6.49s · TenantGuard · neatHack 2026 · team AI LONE STAR</p>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

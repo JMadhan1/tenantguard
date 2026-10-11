@@ -13,6 +13,7 @@ Fill the `LINK` placeholders as you capture evidence. Keep every link; never cla
 | 6 | **Recovery** (a failed action + what it did next) | `docs/report.html` timeline; `artifacts/<run>/report.json` (`verify: regressed` → `classify_failure` → `verify: fixed`) | Watch the naive fix regress, revert, and the tenant-scoped fix pass · demo timestamp LINK |
 | 7 | **Public repo, event-dated commits** | GitHub repo | Commits dated 2026-10-10..12 · **https://github.com/JMadhan1/tenantguard** |
 | 8 | **Demo video (≤3 min)** | `docs/DEMO_SCRIPT.md` → recording | LINK |
+| ✓ | **Live hosted dashboard (hardened)** | `site/` on Vercel | **https://site-black-six-51.vercel.app** — strict CSP (no inline JS/CSS), HSTS preload, X-Frame-Options DENY, locked Permissions-Policy, `/.well-known/security.txt` |
 | 9 | **Building in public (#neatHack)** | `docs/BUILD_IN_PUBLIC.md` → posts | 4–6 posts with real artifacts · LINKs |
 
 ## Honesty notes
