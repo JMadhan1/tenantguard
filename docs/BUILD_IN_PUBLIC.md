@@ -11,13 +11,21 @@ Post from your own account with real artifacts (screenshots/clips). Tag **#neatH
 **3 — The recovery (money shot).**
 > This is the part I love. TenantGuard's first fix closes the leak but **breaks legitimate same-tenant access**. It notices, reverts, and applies a tenant-scoped fix instead. Unattended. [15–30s clip of the timeline] #neatHack
 
-**4 — neatlogs before/after.**
-> Traced two versions of the agent in @neatlogs. baseline vs improved prompt: fewer attempts, ~half the tokens, lower cost per fix. Receipts: [trace links] #neatHack
+**4 — before/after (the real improvement).**
+> Ran TenantGuard two ways. A naive agent "fixes" the IDOR but silently **breaks legitimate same-tenant access** — a false fix (`needs_review`). TenantGuard's verifier demands security AND functionality both pass, so it catches the regression, reverts, and fixes it right (`fixed`). Traced in @neatlogs. #neatHack
 
 **5 — Entire.**
-> Every fix is backed by an @entire checkpoint — the captured coding session that shows *how* and *why* the change was made, tied to the commit. [checkpoint screenshot] #neatHack
+> Every fix is backed by an @entire checkpoint — the captured coding session that shows *how* and *why* the change was made, tied to the commit. [checkpoint link] #neatHack
 
-**6 — cfo.ai + close.**
-> Modeled TenantGuard in cfo.ai: cost-per-fix (measured in neatlogs) → pricing → margin → runway, with the scenario where runaway retries kill the economics. Repo + demo: [links] #neatHack
+**6 — cfo.ai + hosting.**
+> Modeled TenantGuard in cfo.ai: measured cost-per-fix (~$0.005 on Bedrock Opus 4.6) → pricing → margin → runway, incl. the scenario where runaway retries kill the economics.
+> Live, hardened dashboard: https://tenantguard.jmadhan.me #neatHack
 
-Cadence: Sat eve (1,2) · Sat night (3) · Sun (4,5) · Mon (6 + final submission post). Submit by quote-posting the official neatlogs post **Mon 7:00 PM IST** (first 50 quote tweets get sponsor engagement).
+**7 — Submission (quote-post the official neatlogs post).**
+> 🛡️ Submitting **TenantGuard** for #neatHack — a security agent that fixes tenant-isolation (IDOR) bugs and **recovers from its own mistakes**, verified by tests not vibes.
+> Live: https://tenantguard.jmadhan.me
+> Code: https://github.com/JMadhan1/tenantguard
+> Demo: [video link]
+> Team AI LONE STAR · @neatlogs @entire
+
+Cadence (today = Oct 11): post 1–5 through today, 6 + the **submission quote-post on Oct 12, 7:00 PM IST** (first 50 quote tweets get sponsor engagement — submit early in the window).
