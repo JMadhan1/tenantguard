@@ -26,7 +26,7 @@
       break legitimate access. <b>TenantGuard</b> fixes it <i>and</i> proves it didn't break anything — by
       running the tests itself, not by trusting the AI.</p>
     <div class="cta">
-      <button class="run" id="runBtn">▶ Run the live demo</button>
+      <button class="run" id="runBtn">▶ Run it live</button>
       <span class="statusline" id="statusLine"><span class="dot"></span>checking…</span>
     </div>
     <p class="reassure">Runs a real fix on a <b>built-in sample app</b> using Claude Opus 4.6 on AWS Bedrock.
@@ -49,7 +49,7 @@
       <h3>What the agent is doing</h3>
       <p class="hint" id="modeHint">Each line below is real, streamed live as the agent works.</p>
       <div class="alarm" id="alarm" hidden></div>
-      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — press “▶ Run the live demo” above.</li></ul>
+      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — press “▶ Run it live” above.</li></ul>
     </div>
     <div class="panel">
       <h3>The verdict</h3>
@@ -79,7 +79,7 @@
   <h2 class="sec">See more</h2>
   <div class="grid">
     <a class="card" href="https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a" target="_blank" rel="noopener">
-      <div class="tag">Demo</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and the three tools.</p></a>
+      <div class="tag">Video</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and the three tools.</p></a>
     <a class="card" href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">
       <div class="tag">Code</div><h4>Open source</h4><p>The agent, the sample app, the verifier, the tests.</p></a>
     <a class="card" href="https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d" target="_blank" rel="noopener">
@@ -95,7 +95,7 @@
   <h2 class="sec" id="safety">Is this safe?</h2>
   <div class="panel safety">
     <ul>
-      <li><b>It never runs your code.</b> The demo only fixes a built-in synthetic sample app — never a visitor's repo (executing untrusted code is exactly what a security tool must not do).</li>
+      <li><b>It never runs your code.</b> It only fixes a built-in synthetic sample app — never a visitor's repo (executing untrusted code is exactly what a security tool must not do).</li>
       <li><b>It can't break anything.</b> The agent edits a throwaway copy, never commits, pushes, or merges, and never runs AI-generated shell commands.</li>
       <li><b>Tests decide, not the AI.</b> A fix only counts if cross-tenant access is blocked <i>and</i> legitimate access still passes.</li>
       <li><b>Bounded.</b> Rate-limited with a daily cap; all data is synthetic; no secrets.</li>
