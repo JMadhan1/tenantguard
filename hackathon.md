@@ -53,7 +53,7 @@
 - [x] Agent completes the remediation start→finish (live on Bedrock Opus 4.6, status `fixed`)
 - [~] neatlogs: tracing CONFIRMED working (live run `neatlogs: true`, evidence in `docs/evidence/live-bedrock-run.json`); trace dashboard links to be captured by operator
 - [ ] Entire checkpoint link + ID
-- [ ] cfo.ai business plan (needs access)
+- [x] cfo.ai business plan — built in cfo.ai (Business Plan/Revenue/Cash), exported to `docs/evidence/cfo-tenantguard-plan.xlsx`; measured $0.005/fix cost, $900K raise, low/base/high scenarios + risk flag
 - [ ] Recovery run (failed fix → next steps) — trap verified; live trace pending
 - [x] Public repo, event-dated commits — **https://github.com/JMadhan1/tenantguard**
 - [ ] Demo video + #neatHack posts
