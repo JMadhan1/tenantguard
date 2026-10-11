@@ -56,4 +56,5 @@
 - [x] cfo.ai business plan — built in cfo.ai (Business Plan/Revenue/Cash), exported to `docs/evidence/cfo-tenantguard-plan.xlsx`; measured $0.005/fix cost, $900K raise, low/base/high scenarios + risk flag
 - [ ] Recovery run (failed fix → next steps) — trap verified; live trace pending
 - [x] Public repo, event-dated commits — **https://github.com/JMadhan1/tenantguard**
-- [ ] Demo video + #neatHack posts
+- [x] Demo video: https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a
+- [ ] #neatHack posts

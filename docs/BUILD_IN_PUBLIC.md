@@ -25,7 +25,7 @@ Post from your own account with real artifacts (screenshots/clips). Tag **#neatH
 > 🛡️ Submitting **TenantGuard** for #neatHack — a security agent that fixes tenant-isolation (IDOR) bugs and **recovers from its own mistakes**, verified by tests not vibes.
 > Live: https://tenantguard.jmadhan.me
 > Code: https://github.com/JMadhan1/tenantguard
-> Demo: [video link]
+> Demo: https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a
 > Team AI LONE STAR · @neatlogs @entire
 
 Cadence (today = Oct 11): post 1–5 through today, 6 + the **submission quote-post on Oct 12, 7:00 PM IST** (first 50 quote tweets get sponsor engagement — submit early in the window).

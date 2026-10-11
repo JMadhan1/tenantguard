@@ -12,7 +12,7 @@ Fill the `LINK` placeholders as you capture evidence. Keep every link; never cla
 | 5 | **cfo.ai use** (business plan) | **cfo.ai exports in `docs/evidence/`: `cfo-tenantguard-plan.xlsx`, `cfo-tenantguard-revenue.xlsx`, `cfo-tenantguard-cash.xlsx`** + `BUSINESS_PLAN.md` | cfo.ai-built model: inputs ARPA $650, token $0.005/attempt, compute $0.030/fix, $50K/mo burn, $900K launch cash, 1% churn; 36-month cash reconciliation; low/base/high scenarios + top-risk flag. cfo.ai share link: LINK · add a UI screenshot to `docs/evidence/` to prove cfo.ai use |
 | 6 | **Recovery** (a failed action + what it did next) | `docs/report.html` timeline; `artifacts/<run>/report.json` (`verify: regressed` → `classify_failure` → `verify: fixed`) | Watch the naive fix regress, revert, and the tenant-scoped fix pass · demo timestamp LINK |
 | 7 | **Public repo, event-dated commits** | GitHub repo | Commits dated 2026-10-10..12 · **https://github.com/JMadhan1/tenantguard** |
-| 8 | **Demo video (≤3 min)** | `docs/DEMO_SCRIPT.md` → recording | LINK |
+| 8 | **Demo video (≤3 min)** | Loom recording | **https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a** |
 | ✓ | **Live hosted dashboard (hardened)** | `site/` on Vercel | **https://tenantguard.jmadhan.me** — strict CSP (no inline JS/CSS), HSTS preload, X-Frame-Options DENY, locked Permissions-Policy, `/.well-known/security.txt` |
 | 9 | **Building in public (#neatHack)** | `docs/BUILD_IN_PUBLIC.md` → posts | 4–6 posts with real artifacts · LINKs |
 
