@@ -1,5 +1,5 @@
 Contact: https://github.com/JMadhan1/tenantguard/security/advisories/new
 Expires: 2027-10-11T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://github.com/JMadhan1/tenantguard
+Canonical: https://tenantguard.jmadhan.me/.well-known/security.txt
 Policy: https://github.com/JMadhan1/tenantguard/blob/main/docs/SAFETY.md

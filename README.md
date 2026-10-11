@@ -13,7 +13,7 @@
 
 **Team AI LONE STAR** · led by **Madhan J**
 
-**Live dashboard:** https://tenantguard-ten.vercel.app (hardened: strict CSP, HSTS, no inline JS/CSS)
+**Live dashboard:** https://tenantguard.jmadhan.me (hardened: strict CSP, HSTS, no inline JS/CSS)
 
 </div>
 
