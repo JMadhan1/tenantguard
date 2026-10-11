@@ -1,8 +1,8 @@
 """The 'brain' proposes a patch. Two backends share one interface:
 
-  * OfflineBrain — scripted, no API key. For the recovery demo it proposes a
-    naive owner-only fix first (a labeled fault injection), then the correct
-    tenant-scoped fix after seeing the regression. Clearly NOT a live model.
+  * OfflineBrain — scripted, no API key. For each case it proposes a known-bad
+    naive fix first (a labeled fault injection), then the correct fix after
+    seeing the regression feedback. Clearly NOT a live model.
   * LLMBrain — a real Claude call (used when a key is present); returns a
     JSON patch. The deterministic verifier still owns success.
 
@@ -14,43 +14,152 @@ from __future__ import annotations
 
 import json
 
-# Exact source span of the planted bug in fixture/invoicely/app.py
-BUG = (
+# ---- IDOR patches (invoicely) ------------------------------------------------
+IDOR_BUG = (
     '        # SECURITY BUG (broken object-level authorization / IDOR):\n'
     '        # the invoice is returned without checking that it belongs to the\n'
     "        # caller's tenant, so any authenticated user can read any invoice.\n"
     '        return invoice'
 )
-CORRECT = (
+IDOR_CORRECT = (
     '        if invoice["tenant_id"] != user["tenant_id"]:\n'
     '            raise HTTPException(status_code=403, detail="forbidden")\n'
     '        return invoice'
 )
-NAIVE = (
+IDOR_NAIVE = (
     '        if invoice["created_by"] != user["id"]:\n'
     '            raise HTTPException(status_code=403, detail="forbidden")\n'
     '        return invoice'
 )
 
+# ---- SQL injection patches (taskboard) ---------------------------------------
+SQLI_BUG = """\
+        # SECURITY BUG (SQL injection):
+        # The query string is unsafely interpolated into raw SQL,
+        # allowing attackers to inject arbitrary statements.
+        team = user["team"]
+        sql = "SELECT * FROM tasks WHERE team = '" + team + "' AND title LIKE '%" + q + "%'"
+        rows = conn.execute(sql).fetchall()
+        return [dict(r) for r in rows]"""
+
+SQLI_NAIVE = """\
+        import re
+        q = re.sub(r'[^a-zA-Z0-9 ]', '', q)
+        team = user["team"]
+        sql = "SELECT * FROM tasks WHERE team = '" + team + "' AND title LIKE '%" + q + "%'"
+        rows = conn.execute(sql).fetchall()
+        return [dict(r) for r in rows]"""
+
+SQLI_CORRECT = """\
+        rows = conn.execute(
+            "SELECT * FROM tasks WHERE team = ? AND title LIKE ?",
+            (user["team"], f"%{q}%")
+        ).fetchall()
+        return [dict(r) for r in rows]"""
+
+# ---- Path traversal patches (docshare) ---------------------------------------
+TRAVERSAL_BUG = """\
+        # SECURITY BUG (path traversal):
+        # the path query parameter is joined directly without sanitization,
+        # allowing ../../ to escape the user's directory and read
+        # arbitrary files on the server.
+        target = os.path.join(DOCS_ROOT, user["folder"], path)
+        if not os.path.isfile(target):
+            raise HTTPException(status_code=404, detail="file not found")
+        return PlainTextResponse(open(target, encoding="utf-8").read())"""
+
+TRAVERSAL_NAIVE = """\
+        path = os.path.basename(path)
+        target = os.path.join(DOCS_ROOT, user["folder"], path)
+        if not os.path.isfile(target):
+            raise HTTPException(status_code=404, detail="file not found")
+        return PlainTextResponse(open(target, encoding="utf-8").read())"""
+
+TRAVERSAL_CORRECT = """\
+        user_dir = os.path.realpath(os.path.join(DOCS_ROOT, user["folder"]))
+        target = os.path.realpath(os.path.join(user_dir, path))
+        if not target.startswith(user_dir + os.sep) and target != user_dir:
+            raise HTTPException(status_code=403, detail="forbidden")
+        if not os.path.isfile(target):
+            raise HTTPException(status_code=404, detail="file not found")
+        return PlainTextResponse(open(target, encoding="utf-8").read())"""
+
+# ---- Patch registry per case -------------------------------------------------
+_PATCHES = {
+    "invoicely-idor-001": {
+        "rel": "invoicely/app.py",
+        "bug": IDOR_BUG,
+        "naive": IDOR_NAIVE,
+        "correct": IDOR_CORRECT,
+        "naive_rationale": "Restrict reads to the invoice's creator.",
+        "correct_rationale": (
+            "Enforce that the invoice's tenant_id matches the caller's tenant_id; "
+            "return 403 otherwise. Tenant-scoped, not owner-scoped."
+        ),
+        "naive_label": "attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)",
+        "correct_label": "tenant-scoped fix",
+    },
+    "taskboard-sqli-001": {
+        "rel": "taskboard/app.py",
+        "bug": SQLI_BUG,
+        "naive": SQLI_NAIVE,
+        "correct": SQLI_CORRECT,
+        "naive_rationale": "Strip non-alphanumeric characters from the search input to prevent injection.",
+        "correct_rationale": (
+            "Use parameterized queries (? placeholders) instead of string concatenation. "
+            "Prevents SQL injection without limiting legitimate search input."
+        ),
+        "naive_label": "attempt 1 - input sanitization (labeled fault injection; will break special-char search)",
+        "correct_label": "parameterized query fix",
+    },
+    "docshare-traversal-001": {
+        "rel": "docshare/app.py",
+        "bug": TRAVERSAL_BUG,
+        "naive": TRAVERSAL_NAIVE,
+        "correct": TRAVERSAL_CORRECT,
+        "naive_rationale": "Use os.path.basename() to strip all directory components from the path.",
+        "correct_rationale": (
+            "Resolve the real path and verify it stays within the user's directory. "
+            "Blocks traversal while preserving access to legitimate subdirectories."
+        ),
+        "naive_label": "attempt 1 - basename only (labeled fault injection; will break subdirectory access)",
+        "correct_label": "realpath containment fix",
+    },
+}
+
+# Legacy aliases for backward compatibility
+BUG = IDOR_BUG
+CORRECT = IDOR_CORRECT
+NAIVE = IDOR_NAIVE
+
 
 class OfflineBrain:
+    """Scripted brain — proposes known-bad then known-good fix per case."""
     kind = "offline-scripted"
 
-    def __init__(self, naive_first: bool = True):
+    def __init__(self, naive_first: bool = True, case_id: str = "invoicely-idor-001"):
         self.naive_first = naive_first
+        self.case_id = case_id
 
     def propose(self, *, issue, files, attempt, feedback=None):
+        patches = _PATCHES.get(self.case_id)
+        if not patches:
+            raise ValueError(f"no offline patches for case {self.case_id}")
+
         if self.naive_first and attempt == 1:
             return {
-                "rel": "invoicely/app.py", "old": BUG, "new": NAIVE,
-                "rationale": "Restrict reads to the invoice's creator.",
-                "label": "attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)",
+                "rel": patches["rel"],
+                "old": patches["bug"],
+                "new": patches["naive"],
+                "rationale": patches["naive_rationale"],
+                "label": patches["naive_label"],
             }
         return {
-            "rel": "invoicely/app.py", "old": BUG, "new": CORRECT,
-            "rationale": "Enforce that the invoice's tenant_id matches the caller's tenant_id; "
-                         "return 403 otherwise. Tenant-scoped, not owner-scoped.",
-            "label": "tenant-scoped fix",
+            "rel": patches["rel"],
+            "old": patches["bug"],
+            "new": patches["correct"],
+            "rationale": patches["correct_rationale"],
+            "label": patches["correct_label"],
         }
 
 
@@ -98,16 +207,16 @@ def build_model_client(workflow_name: str, backend: str):
     return base, False
 
 
-# Prompt guidance: 'baseline' is the naive first version of the agent; 'improved'
-# encodes what we learned from reading the baseline's neatlogs trace. The two
-# produce the required before/after improvement evidence.
+# Prompt guidance — generic across all vulnerability classes.
 _GUIDANCE = {
-    "baseline": "Fix the authorization bug.",
+    "baseline": "Fix the security bug described in the report.",
     "improved": (
-        "Enforce authorization at the TENANT level, not the owner level: a user may read any "
-        "invoice whose tenant matches their own. Make ONE localized change in the endpoint; do "
-        "not change shared helpers or data. Ensure legitimate same-tenant access from a "
-        "different user still succeeds."
+        "Fix the security vulnerability described in the bug report. Make ONE localized "
+        "change in the affected endpoint. Do not change shared helpers, data models, or tests. "
+        "Prefer the most precise fix: parameterized queries for SQL injection, path containment "
+        "(realpath + startswith) for traversal, tenant-scoped checks for IDOR. Avoid broad input "
+        "sanitization that could break legitimate functionality. Ensure all existing legitimate "
+        "use cases still work after your fix."
     ),
 }
 

@@ -1,6 +1,11 @@
 "use strict";
 (function () {
-  // plain-language labels so a first-time visitor follows along
+  /* ================================================================
+     TenantGuard — Frontend Controller
+     Scroll reveal, animated counters, multi-case SSE, repo scanner
+     ================================================================ */
+
+  // ---- Phase labels for the timeline ---------------------------------
   var LABEL = {
     intake: "Set up a safe sandbox",
     baseline_tests: "Run the security tests",
@@ -13,32 +18,108 @@
     export_report: "Done — write the report",
     human_review: "Flag for a human"
   };
+  var CASE_LABELS = {
+    "invoicely-idor-001": "IDOR",
+    "taskboard-sqli-001": "SQLi",
+    "docshare-traversal-001": "Path Traversal"
+  };
 
-  var runBtn = document.getElementById("runBtn");
-  var statusLine = document.getElementById("statusLine");
-  var modeHint = document.getElementById("modeHint");
-  var consoleEl = document.getElementById("console");
-  var alarm = document.getElementById("alarm");
-  var timeline = document.getElementById("timeline");
-  var emptyRow = document.getElementById("emptyRow");
-  var summary = document.getElementById("summary");
-  var verdict = document.getElementById("verdict");
-  var verdictEmpty = document.getElementById("verdictEmpty");
-  var stamp = document.getElementById("stamp");
-  var kv = document.getElementById("kv");
-  var diffWrap = document.getElementById("diffWrap");
-  var diffEl = document.getElementById("diff");
+  // ---- DOM refs -------------------------------------------------------
+  var $ = function (id) { return document.getElementById(id); };
+  var statusLine = $("statusLine");
+  var modeHint = $("modeHint");
+  var consoleEl = $("console");
+  var alarm = $("alarm");
+  var timeline = $("timeline");
+  var emptyRow = $("emptyRow");
+  var summary = $("summary");
+  var verdict = $("verdict");
+  var verdictEmpty = $("verdictEmpty");
+  var stamp = $("stamp");
+  var kv = $("kv");
+  var diffWrap = $("diffWrap");
+  var diffEl = $("diff");
+  var runBadge = $("runBadge");
   var es = null, idx = 0;
+  var activeCaseId = "invoicely-idor-001";
 
+  // ---- Scroll-reveal (IntersectionObserver) ---------------------------
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("revealed");
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll("[data-reveal]").forEach(function (el) {
+    revealObserver.observe(el);
+  });
+
+  // ---- Status check ---------------------------------------------------
   function setStatus(d) {
     var live = d && d.live;
-    statusLine.innerHTML = '<span class="dot' + (live ? "" : " replay") + '"></span>' +
-      (live ? "Live · Claude Opus 4.6 on AWS Bedrock" : "Replay mode (operator hasn't set live credentials)") +
-      (d ? "  ·  " + d.daily_live_used + "/" + d.daily_live_cap + " live runs today" : "");
+    var dot = statusLine.querySelector(".status-dot");
+    if (dot) dot.className = "status-dot" + (live ? "" : " replay");
+    statusLine.innerHTML = '<span class="status-dot' + (live ? "" : " replay") + '"></span>' +
+      (live ? "Live &middot; Claude Opus 4.6 on AWS Bedrock" : "Replay mode") +
+      (d ? " &middot; " + d.daily_live_used + "/" + d.daily_live_cap + " live runs today" : "");
   }
   fetch("/api/status").then(function (r) { return r.json(); }).then(setStatus)
-    .catch(function () { statusLine.innerHTML = '<span class="dot replay"></span>ready'; });
+    .catch(function () { statusLine.textContent = "ready"; });
 
+  // ---- Analytics refresh -----------------------------------------------
+  function refreshAnalytics() {
+    fetch("/api/analytics").then(function (r) { return r.json(); }).then(function (d) {
+      animateCount($("kpiTotal"), d.total_runs || 0);
+      var fixEl = $("kpiFixRate");
+      if (fixEl) fixEl.textContent = d.total_runs ? d.fix_rate + "%" : "--";
+      animateCount($("kpiRecovery"), d.recovered || 0);
+      var costEl = $("kpiCost");
+      if (costEl) costEl.textContent = d.avg_cost ? "$" + d.avg_cost.toFixed(4) : "--";
+      var owEl = $("kpiOwasp");
+      if (owEl) owEl.textContent = (d.owasp_coverage || []).length || 2;
+    }).catch(function () {});
+  }
+  refreshAnalytics();
+
+  // ---- Animated counter -----------------------------------------------
+  function animateCount(el, target) {
+    if (!el) return;
+    var current = parseInt(el.textContent) || 0;
+    if (current === target) return;
+    var step = Math.max(1, Math.ceil(Math.abs(target - current) / 20));
+    var dir = target > current ? 1 : -1;
+    function tick() {
+      current += dir * step;
+      if ((dir > 0 && current >= target) || (dir < 0 && current <= target)) {
+        el.textContent = target;
+        return;
+      }
+      el.textContent = current;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---- Case selection --------------------------------------------------
+  var caseCards = document.querySelectorAll(".case-card");
+  var caseButtons = document.querySelectorAll(".cc-btn");
+
+  function selectCase(caseId) {
+    activeCaseId = caseId;
+    caseCards.forEach(function (c) {
+      c.classList.toggle("active", c.getAttribute("data-case") === caseId);
+    });
+  }
+  caseCards.forEach(function (card) {
+    card.addEventListener("click", function (e) {
+      if (e.target.tagName === "BUTTON") return;
+      selectCase(card.getAttribute("data-case"));
+    });
+  });
+
+  // ---- Timeline rendering -----------------------------------------------
   function rowClass(ph, detail) {
     if (ph === "classify_failure") return "recover";
     if (ph === "verify" && /regressed/.test(detail)) return "fail";
@@ -61,10 +142,10 @@
     li.children[3].textContent = note;
     timeline.appendChild(li);
 
-    // the signature drama: alarm on self-inflicted regression, clear on recovery
     if (ev.phase === "verify" && /regressed/.test(ev.detail || "")) {
       consoleEl.classList.add("alarm");
-      alarm.textContent = "⚠ The agent's own fix blocked the leak but broke legitimate access. It will undo it and try again.";
+      alarm.textContent = "The agent's own fix passed security but broke legitimate access. Reverting and retrying...";
+      alarm.hidden = false;
       alarm.classList.add("show");
     } else if (ev.phase === "verify" && /fixed/.test(ev.detail || "")) {
       consoleEl.classList.remove("alarm");
@@ -72,6 +153,7 @@
     }
   }
 
+  // ---- Diff rendering --------------------------------------------------
   function fmtDiff(diff) {
     diffEl.textContent = "";
     if (!diff) { diffWrap.hidden = true; return; }
@@ -86,33 +168,38 @@
     diffWrap.hidden = false;
   }
 
+  // ---- Verdict display -------------------------------------------------
   function showVerdict(d) {
     consoleEl.classList.remove("alarm"); alarm.classList.remove("show");
     var ok = d.status === "fixed";
     stamp.textContent = ok ? "SEALED" : (d.status || "incomplete").toUpperCase().replace("_", " ");
-    stamp.className = "stamp" + (ok ? "" : " bad");
+    stamp.className = "verdict-stamp" + (ok ? "" : " bad");
 
+    var vulnLabel = CASE_LABELS[d.case_id] || d.vuln_class || d.case_id;
     var msg;
     if (ok) {
-      msg = "✅ Leak closed — cross-tenant access is now blocked and legitimate access still works, confirmed by the tests"
-        + ((d.attempts || 1) > 1 ? ", after the agent caught and undid a bad fix" : "") + ".";
+      msg = "Leak closed — " + vulnLabel + " vulnerability blocked, legitimate access preserved, verified by deterministic tests"
+        + ((d.attempts || 1) > 1 ? " — after catching and reverting its own bad fix" : "") + ".";
       if (d.mode === "live") msg += " Real run on Claude Opus 4.6" + (d.neatlogs ? ", traced in neatlogs" : "")
-        + (d.cost_usd != null ? ", for $" + Number(d.cost_usd).toFixed(4) : "") + ".";
+        + (d.cost_usd != null ? " for $" + Number(d.cost_usd).toFixed(4) : "") + ".";
     } else {
-      msg = "⚠ Not shipped. The agent couldn't prove a safe fix, so it flagged it for a human instead of guessing.";
+      msg = "Not shipped — the agent couldn't prove a safe fix for " + vulnLabel + ". Flagged for human review.";
     }
     summary.textContent = msg;
-    summary.className = "summary show" + (ok ? "" : " bad");
+    summary.className = "verdict-summary show" + (ok ? "" : " bad");
+    summary.hidden = false;
 
     var rows = [
+      ["Vulnerability", vulnLabel],
       ["Result", d.status],
-      ["Mode", d.mode === "live" ? "live · Bedrock Opus 4.6" : "scripted replay"],
+      ["Mode", d.mode === "live" ? "live / Bedrock Opus 4.6" : "scripted replay"],
       ["Attempts", d.attempts],
-      ["Starting tests", d.baseline ? (d.baseline.passed + " passed / " + d.baseline.failed + " failed") : "—"],
-      ["Blocks cross-tenant", d.security_pass ? "yes" : "no"],
+      ["Baseline tests", d.baseline ? (d.baseline.passed + " passed / " + d.baseline.failed + " failed") : "—"],
+      ["Blocks vulnerability", d.security_pass ? "yes" : "no"],
       ["Keeps legit access", d.functionality_pass ? "yes" : "no"],
-      ["Traced in neatlogs", d.neatlogs ? "yes" : "no"]
     ];
+    if (d.regressions && d.regressions.length) rows.push(["Regressions caught", d.regressions.join(", ")]);
+    if (d.neatlogs) rows.push(["Traced in neatlogs", "yes"]);
     if (d.cost_usd != null) rows.push(["Cost / fix", "$" + Number(d.cost_usd).toFixed(4)]);
     kv.innerHTML = "";
     rows.forEach(function (r) {
@@ -126,29 +213,96 @@
     verdict.classList.add("show");
   }
 
-  function finish() { if (es) { es.close(); es = null; } runBtn.disabled = false; runBtn.textContent = "▶ Run it again"; }
+  // ---- Run management ---------------------------------------------------
+  function disableButtons(disabled) {
+    caseButtons.forEach(function (b) { b.disabled = disabled; });
+  }
+  function finish() {
+    if (es) { es.close(); es = null; }
+    disableButtons(false);
+    refreshAnalytics();
+  }
 
-  runBtn.addEventListener("click", function () {
+  function startRun(caseId) {
     if (es) return;
-    runBtn.disabled = true; runBtn.textContent = "Running…";
+    selectCase(caseId);
+    disableButtons(true);
     timeline.innerHTML = ""; emptyRow = null; idx = 0;
-    consoleEl.classList.remove("alarm"); alarm.classList.remove("show");
-    verdict.classList.remove("show"); summary.classList.remove("show");
-    verdictEmpty.style.display = ""; verdictEmpty.textContent = "Running…";
+    consoleEl.classList.remove("alarm"); alarm.classList.remove("show"); alarm.hidden = true;
+    verdict.classList.remove("show"); summary.classList.remove("show"); summary.hidden = true;
+    verdictEmpty.style.display = ""; verdictEmpty.textContent = "Running...";
+    runBadge.textContent = CASE_LABELS[caseId] || caseId;
+    runBadge.hidden = false;
 
-    es = new EventSource("/api/stream?case_id=invoicely-idor-001");
+    document.getElementById("console-section").scrollIntoView({ behavior: "smooth", block: "start" });
+
+    es = new EventSource("/api/stream?case_id=" + encodeURIComponent(caseId));
     es.addEventListener("start", function (e) {
       var d = JSON.parse(e.data);
       modeHint.textContent = d.mode === "live"
-        ? "Live run on " + d.model + " — every line is real backend state."
-        : "Replay of a real run — the operator hasn't enabled live credentials.";
+        ? "Live run on " + d.model + " — every line is real."
+        : "Scripted replay of a real run (live credentials not set).";
     });
     es.addEventListener("phase", function (e) { addPhase(JSON.parse(e.data)); });
     es.addEventListener("done", function (e) { showVerdict(JSON.parse(e.data)); finish(); });
     es.addEventListener("busy", function (e) { verdictEmpty.textContent = JSON.parse(e.data).message; finish(); });
     es.addEventListener("error", function () {
-      if (!verdict.classList.contains("show")) verdictEmpty.textContent = "Connection ended — please try again.";
+      if (!verdict.classList.contains("show")) verdictEmpty.textContent = "Connection ended — try again.";
       finish();
     });
+  }
+
+  caseButtons.forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      startRun(btn.getAttribute("data-case"));
+    });
   });
+
+  // ---- Repo Scanner ----------------------------------------------------
+  var scanBtn = $("scanBtn");
+  var scanUrl = $("scanUrl");
+  var scanResults = $("scanResults");
+  var scanStats = $("scanStats");
+  var scanFindings = $("scanFindings");
+  var scanSummary = $("scanSummary");
+
+  if (scanBtn) scanBtn.addEventListener("click", function () {
+    var url = (scanUrl.value || "").trim();
+    if (!url) return;
+    scanBtn.disabled = true; scanBtn.textContent = "Scanning...";
+    scanResults.hidden = false; scanStats.textContent = "Cloning repository...";
+    scanFindings.innerHTML = ""; scanSummary.hidden = true;
+
+    var evs = new EventSource("/api/scan?repo_url=" + encodeURIComponent(url));
+    var count = 0;
+    evs.addEventListener("stage", function (e) {
+      scanStats.textContent = JSON.parse(e.data).msg;
+    });
+    evs.addEventListener("finding", function (e) {
+      count++;
+      var f = JSON.parse(e.data);
+      var div = document.createElement("div"); div.className = "sf-row";
+      div.innerHTML = '<span class="sf-sev ' + f.severity + '"></span><span></span>';
+      div.children[0].textContent = f.severity;
+      div.children[1].textContent = f.title + " — " + f.file + ":" + f.line;
+      scanFindings.appendChild(div);
+      scanStats.textContent = count + " findings so far...";
+    });
+    evs.addEventListener("done", function (e) {
+      var d = JSON.parse(e.data);
+      scanStats.textContent = "Scanned " + d.scanned + " files — " + d.count + " findings";
+      if (d.summary) { scanSummary.textContent = d.summary; scanSummary.hidden = false; }
+      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+    });
+    evs.addEventListener("busy", function (e) {
+      scanStats.textContent = JSON.parse(e.data).message;
+      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+    });
+    evs.addEventListener("error", function () {
+      scanStats.textContent = "Scan ended. " + count + " findings found.";
+      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+    });
+  });
+
 })();

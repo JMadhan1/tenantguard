@@ -132,7 +132,7 @@ class Worktree:
         junit = os.path.join(self.root, "junit.xml")
         try:
             proc = subprocess.run(
-                [sys.executable, "-m", "pytest", "-q", "--no-header",
+                [sys.executable, "-m", "pytest", self.case.test_dir, "-q", "--no-header",
                  "-p", "no:cacheprovider", f"--junitxml={junit}"],
                 cwd=self.repo, capture_output=True, text=True, timeout=TEST_TIMEOUT,
             )

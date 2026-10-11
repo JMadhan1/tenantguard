@@ -19,7 +19,7 @@ def run_case(case_id: str, *, offline: bool = True, model: str | None = None,
              run_id: str | None = None, brain=None) -> dict:
     if brain is None:
         if offline:
-            brain = OfflineBrain(naive_first=naive_first)
+            brain = OfflineBrain(naive_first=naive_first, case_id=case_id)
         else:
             backend = detect_backend()
             resolved = (model or os.environ.get("TENANTGUARD_MODEL")

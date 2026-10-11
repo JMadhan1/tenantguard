@@ -1,0 +1,88 @@
+name: TenantGuard Security Audit
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install TenantGuard
+        run: |
+          pip install -q fastapi httpx pytest langgraph langchain-core anthropic boto3 pydantic
+          pip install -q -e .
+        working-directory: .
+
+      - name: Run static security scan
+        run: |
+          python -c "
+          from tenantguard_agent.scanner import iter_files, scan_text, severity_rank
+          import json, sys
+
+          findings = []
+          scanned = 0
+          for rel, content in iter_files('.'):
+              scanned += 1
+              for f in scan_text(rel, content):
+                  findings.append(f)
+
+          findings.sort(key=lambda f: severity_rank(f['severity']))
+
+          print(f'Scanned {scanned} files')
+          print(f'Found {len(findings)} issues')
+
+          critical = [f for f in findings if f['severity'] in ('critical', 'high')]
+          if critical:
+              print('\\n--- Critical/High findings ---')
+              for f in critical:
+                  print(f\"  [{f['severity']}] {f['title']} in {f['file']}:{f['line']}\")
+              sys.exit(1)
+          else:
+              print('No critical/high issues found.')
+          "
+
+      - name: Run offline fixture tests
+        run: |
+          python run_case.py invoicely-idor-001 --correct-first
+          python run_case.py taskboard-sqli-001 --correct-first
+          python run_case.py docshare-traversal-001 --correct-first
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const artifacts = fs.readdirSync('artifacts')
+              .filter(d => d.startsWith('run-'))
+              .map(d => {
+                const report = JSON.parse(fs.readFileSync(`artifacts/${d}/report.json`, 'utf8'));
+                return `| ${report.case_id} | ${report.status} | ${report.attempts} | ${report.verdict?.security_pass ? 'yes' : 'no'} | ${report.verdict?.functionality_pass ? 'yes' : 'no'} |`;
+              });
+
+            const body = `## TenantGuard Security Audit
+
+            | Case | Status | Attempts | Security | Functionality |
+            |------|--------|----------|----------|---------------|
+            ${artifacts.join('\n')}
+
+            All vulnerability fixtures passed deterministic verification.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body,
+            });

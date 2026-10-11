@@ -3,121 +3,406 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TenantGuard</title>
-<meta name="description" content="An AI security agent that fixes access-control bugs and catches its own mistakes. Watch it fix a real tenant-isolation leak, live.">
+<title>TenantGuard — AI Security Remediation Agent</title>
+<meta name="description" content="An AI security agent that fixes access-control bugs, SQL injection, and path traversal — and catches its own mistakes. 3 vuln classes, self-healing loop, $0.005/fix.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="strip">
-    <span><b>TenantGuard</b> // AI security remediation</span>
-    <span>team AI LONE STAR &nbsp;·&nbsp; neatHack 2026</span>
-  </div>
+<div class="page">
 
-  <div class="hero">
-    <div class="scan" aria-hidden="true"></div>
-    <div class="eyebrow"><span class="led"></span>Live agent · no signup · ~15 seconds</div>
-    <h1>An AI agent that fixes security bugs — and catches its own mistakes.</h1>
-    <p class="lede">One of the most common security flaws lets <b>one customer read another customer's data</b>
-      (a “tenant-isolation” / IDOR bug). Fixing it is risky: a careless patch can block the leak but also
-      break legitimate access. <b>TenantGuard</b> fixes it <i>and</i> proves it didn't break anything — by
-      running the tests itself, not by trusting the AI.</p>
-    <div class="cta">
-      <button class="run" id="runBtn">▶ Run it live</button>
-      <span class="statusline" id="statusLine"><span class="dot"></span>checking…</span>
+  <!-- ======== TOP BAR ======== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo"><span class="logo-icon"></span><b>TenantGuard</b></div>
+      <nav class="topnav">
+        <a href="#cases">Cases</a>
+        <a href="#console-section">Live demo</a>
+        <a href="#owasp">OWASP</a>
+        <a href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <div class="topbar-tag">neatHack 2026</div>
     </div>
-    <p class="reassure">Runs a real fix on a <b>built-in sample app</b> using Claude Opus 4.6 on AWS Bedrock.
-      It never touches your code — <a href="#safety">why ↓</a></p>
-  </div>
+  </header>
 
-  <h2 class="sec">How it works — in 3 steps</h2>
-  <div class="steps">
-    <div class="step"><div class="step-num">1</div><h4>The setup</h4>
-      <p>A sample invoicing app has a planted bug: <b>any logged-in user can read any tenant's invoices</b> — a cross-tenant leak.</p></div>
-    <div class="step"><div class="step-num">2</div><h4>The agent runs</h4>
-      <p>TenantGuard reproduces the leak, writes a fix, and re-runs the tests. If its fix <b>breaks legitimate access</b>, it undoes it and tries again.</p></div>
-    <div class="step"><div class="step-num">3</div><h4>The proof</h4>
-      <p>“Fixed” means <b>both</b>: cross-tenant access is blocked <b>and</b> legitimate access still works — decided by tests, not the AI.</p></div>
-  </div>
-
-  <h2 class="sec">Watch it work <span class="sub">— press Run above</span></h2>
-  <div class="live">
-    <div class="panel console" id="console">
-      <h3>What the agent is doing</h3>
-      <p class="hint" id="modeHint">Each line below is real, streamed live as the agent works.</p>
-      <div class="alarm" id="alarm" hidden></div>
-      <ul class="tl" id="timeline"><li class="empty" id="emptyRow">No run yet — press “▶ Run it live” above.</li></ul>
+  <!-- ======== HERO ======== -->
+  <section class="hero">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="hero-orb orb1"></div>
+      <div class="hero-orb orb2"></div>
+      <div class="hero-orb orb3"></div>
+      <div class="hero-grid"></div>
     </div>
-    <div class="panel">
-      <h3>The verdict</h3>
-      <p class="hint">A deterministic checker — not the AI — decides success.</p>
-      <div class="summary" id="summary" hidden></div>
-      <div class="verdict" id="verdict">
-        <div class="stamp" id="stamp">SEALED</div>
-        <div id="kv"></div>
-        <details id="diffWrap" hidden><summary>See the exact code change</summary><pre class="diff" id="diff"></pre></details>
+    <div class="hero-inner">
+      <div class="hero-eyebrow"><span class="pulse-dot"></span> Live agent &middot; no signup &middot; ~15 seconds</div>
+      <h1 class="hero-title">The AI agent that <span class="grad-text">doesn't trust itself.</span></h1>
+      <p class="hero-sub">Most AI code-fix tools silently ship broken patches. TenantGuard fixes security bugs,
+        then <b>proves</b> it didn't break anything &mdash; by running deterministic tests, catching its own regressions,
+        and recovering automatically.</p>
+      <div class="hero-pills">
+        <span class="pill"><span class="pill-num">3</span> Vuln classes</span>
+        <span class="pill pill-green"><span class="pill-num">$0.005</span> per fix</span>
+        <span class="pill pill-orange"><span class="pill-num">Self</span> healing</span>
       </div>
-      <p class="empty" id="verdictEmpty">The result appears here when the run finishes.</p>
+      <a href="#cases" class="hero-cta">Choose a vulnerability &darr;</a>
+      <div class="hero-status" id="statusLine"><span class="status-dot"></span>checking...</div>
     </div>
-  </div>
+  </section>
 
-  <h2 class="sec">Why the self-check matters</h2>
-  <p class="plain">A naive AI agent “fixes” the leak but silently breaks legitimate access — and calls it done. TenantGuard's verifier won't accept that.</p>
-  <table class="ba">
-    <thead><tr><th>&nbsp;</th><th>Naive AI fix</th><th>TenantGuard</th></tr></thead>
-    <tbody>
-      <tr><td>Blocks cross-tenant access</td><td class="center">✅</td><td class="center">✅</td></tr>
-      <tr><td>Keeps legitimate access working</td><td class="center">❌ broken</td><td class="center">✅ preserved</td></tr>
-      <tr><td>Result</td><td class="center">ships a broken “fix”</td><td class="center"><b>verified fix</b></td></tr>
-      <tr><td>Cost per fix (Opus 4.6 · Bedrock)</td><td class="center">—</td><td class="center"><b>~$0.005</b></td></tr>
-    </tbody>
-  </table>
+  <!-- ======== KPI ANALYTICS ======== -->
+  <section class="section" id="analytics">
+    <div class="section-inner">
+      <div class="section-label">Real-time analytics</div>
+      <div class="kpi-bento">
+        <div class="kpi big" data-reveal>
+          <div class="kpi-value" id="kpiTotal" data-count="0">0</div>
+          <div class="kpi-name">Total runs</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value" id="kpiFixRate">--</div>
+          <div class="kpi-name">Fix rate</div>
+        </div>
+        <div class="kpi accent" data-reveal>
+          <div class="kpi-value" id="kpiRecovery" data-count="0">0</div>
+          <div class="kpi-name">Self-corrections</div>
+          <div class="kpi-sub">regressions caught &amp; recovered</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value" id="kpiCost">--</div>
+          <div class="kpi-name">Avg cost / fix</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value">3</div>
+          <div class="kpi-name">Vuln classes</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value" id="kpiOwasp">2</div>
+          <div class="kpi-name">OWASP categories</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <h2 class="sec">Who it's for</h2>
-  <div class="grid who">
-    <div class="card nolink"><div class="tag">Security teams</div><h4>Auto-remediate access bugs</h4><p>Turn a whole class of IDOR / tenant-isolation findings into safe, reviewable patches — without slow manual triage.</p></div>
-    <div class="card nolink"><div class="tag">SaaS builders</div><h4>Protect customer data</h4><p>Catch the most common multi-tenant flaw — “one customer can see another's data” — before it ever ships.</p></div>
-    <div class="card nolink"><div class="tag">AI engineers</div><h4>A trustworthy-agent pattern</h4><p>Let the model propose, but let deterministic tests decide — and make the agent recover from its own mistakes.</p></div>
-  </div>
+  <!-- ======== ARCHITECTURE — THE LOOP ======== -->
+  <section class="section" id="arch">
+    <div class="section-inner">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">The self-healing remediation loop</h2>
+      <p class="section-desc">The agent proposes a fix. If the fix breaks something, the verifier catches it, the agent reverts, and tries again. <b>Tests decide — not the AI.</b></p>
+      <div class="arch-flow" data-reveal>
+        <div class="arch-step">
+          <div class="arch-num">1</div>
+          <div class="arch-icon">&#128269;</div>
+          <h4>Reproduce</h4>
+          <p>Run baseline tests to confirm the vulnerability exists</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-step">
+          <div class="arch-num">2</div>
+          <div class="arch-icon">&#9998;</div>
+          <h4>Fix</h4>
+          <p>AI proposes a code patch to close the vulnerability</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-step warn">
+          <div class="arch-num">3</div>
+          <div class="arch-icon">&#9888;</div>
+          <h4>Verify</h4>
+          <p>Deterministic tests check both security AND functionality</p>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-step ok">
+          <div class="arch-num">4</div>
+          <div class="arch-icon">&#10004;</div>
+          <h4>Prove</h4>
+          <p>All tests pass = verified fix. Any failure = revert &amp; retry</p>
+        </div>
+      </div>
+      <div class="arch-loop" data-reveal>
+        <div class="loop-line"></div>
+        <span class="loop-label">Regression detected &rarr; revert patch &rarr; retry with feedback</span>
+      </div>
+    </div>
+  </section>
 
-  <h2 class="sec">See more</h2>
-  <div class="grid">
-    <a class="card" href="https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a" target="_blank" rel="noopener">
-      <div class="tag">Video</div><h4>3-min walkthrough ▶</h4><p>The agent, the recovery, and the three tools.</p></a>
-    <a class="card" href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">
-      <div class="tag">Code</div><h4>Open source</h4><p>The agent, the sample app, the verifier, the tests.</p></a>
-    <a class="card" href="https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d" target="_blank" rel="noopener">
-      <div class="tag">Entire</div><h4>Build history 📌</h4><p>How &amp; why the code was written, tied to the commit.</p></a>
-    <a class="card" href="/neatlogs-trace.png" target="_blank" rel="noopener">
-      <div class="tag">neatlogs</div><h4>Live trace 🔎</h4><p>Every model + tool call of a real run.</p></a>
-    <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/evidence/cfo-tenantguard-plan.xlsx" target="_blank" rel="noopener">
-      <div class="tag">cfo.ai</div><h4>Business model 💰</h4><p>Measured cost → pricing, margin, runway.</p></a>
-    <a class="card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/EVIDENCE.md" target="_blank" rel="noopener">
-      <div class="tag">Evidence</div><h4>Proof index</h4><p>Every claim mapped to a checkable artifact.</p></a>
-  </div>
+  <!-- ======== VULNERABILITY CASES ======== -->
+  <section class="section" id="cases">
+    <div class="section-inner">
+      <div class="section-label">Choose a case</div>
+      <h2 class="section-title">3 real-world vulnerability classes</h2>
+      <p class="section-desc">Each case has a planted bug, a naive trap fix that causes regression, and 8 deterministic tests. Pick one and watch the agent work.</p>
+      <div class="case-grid">
+        <div class="case-card active" data-case="invoicely-idor-001" data-reveal tabindex="0">
+          <div class="cc-top">
+            <span class="cc-badge">OWASP A01</span>
+            <span class="cc-color idor"></span>
+          </div>
+          <h3>Broken Access Control</h3>
+          <p class="cc-aka">IDOR / BOLA</p>
+          <p class="cc-desc">One customer reads another tenant's invoices via direct object reference.</p>
+          <div class="cc-detail">
+            <div class="cc-row"><span>Naive trap</span><b>Owner-only check</b></div>
+            <div class="cc-row"><span>Breaks</span><b>Same-tenant access</b></div>
+            <div class="cc-row"><span>Correct fix</span><b>Tenant-scoped check</b></div>
+            <div class="cc-row"><span>Tests</span><b>4 security + 4 functionality</b></div>
+          </div>
+          <button class="cc-btn idor" data-case="invoicely-idor-001">Run IDOR fix</button>
+        </div>
 
-  <h2 class="sec" id="safety">Is this safe?</h2>
-  <div class="panel safety">
-    <ul>
-      <li><b>It never runs your code.</b> It only fixes a built-in synthetic sample app — never a visitor's repo (executing untrusted code is exactly what a security tool must not do).</li>
-      <li><b>It can't break anything.</b> The agent edits a throwaway copy, never commits, pushes, or merges, and never runs AI-generated shell commands.</li>
-      <li><b>Tests decide, not the AI.</b> A fix only counts if cross-tenant access is blocked <i>and</i> legitimate access still passes.</li>
-      <li><b>Bounded.</b> Rate-limited with a daily cap; all data is synthetic; no secrets.</li>
-    </ul>
-  </div>
+        <div class="case-card" data-case="taskboard-sqli-001" data-reveal tabindex="0">
+          <div class="cc-top">
+            <span class="cc-badge sqli">OWASP A03</span>
+            <span class="cc-color sqli-c"></span>
+          </div>
+          <h3>SQL Injection</h3>
+          <p class="cc-aka">String-concat query</p>
+          <p class="cc-desc">Search endpoint builds SQL by concatenation &mdash; UNION injection leaks cross-team data.</p>
+          <div class="cc-detail">
+            <div class="cc-row"><span>Naive trap</span><b>Strip special chars</b></div>
+            <div class="cc-row"><span>Breaks</span><b>Search for "v2.0"</b></div>
+            <div class="cc-row"><span>Correct fix</span><b>Parameterized query</b></div>
+            <div class="cc-row"><span>Tests</span><b>4 security + 4 functionality</b></div>
+          </div>
+          <button class="cc-btn sqli" data-case="taskboard-sqli-001">Run SQLi fix</button>
+        </div>
 
-  <div class="tagline">Reproduce · fix · catch yourself · prove it.</div>
-  <footer class="maker">
-    <div class="m-left">Built by <b>Madhan J</b> · team <b>AI LONE STAR</b> · neatHack 2026</div>
-    <nav class="m-links">
-      <a href="https://jmadhan.me" target="_blank" rel="noopener">Portfolio ↗</a>
-      <a href="https://x.com/jmadhanai" target="_blank" rel="noopener">X ↗</a>
-      <a href="https://github.com/JMadhan1" target="_blank" rel="noopener">GitHub ↗</a>
-      <a href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">Source code ↗</a>
-    </nav>
+        <div class="case-card" data-case="docshare-traversal-001" data-reveal tabindex="0">
+          <div class="cc-top">
+            <span class="cc-badge trav">OWASP A01</span>
+            <span class="cc-color trav-c"></span>
+          </div>
+          <h3>Path Traversal</h3>
+          <p class="cc-aka">Directory escape</p>
+          <p class="cc-desc">File download joins paths unsanitized &mdash; ../../ reads server secrets.</p>
+          <div class="cc-detail">
+            <div class="cc-row"><span>Naive trap</span><b>basename() only</b></div>
+            <div class="cc-row"><span>Breaks</span><b>Subdirectory access</b></div>
+            <div class="cc-row"><span>Correct fix</span><b>realpath containment</b></div>
+            <div class="cc-row"><span>Tests</span><b>4 security + 4 functionality</b></div>
+          </div>
+          <button class="cc-btn trav" data-case="docshare-traversal-001">Run traversal fix</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== LIVE CONSOLE ======== -->
+  <section class="section dark-section" id="console-section">
+    <div class="section-inner">
+      <div class="section-label light">Live demo</div>
+      <h2 class="section-title light">Watch the agent work</h2>
+      <div class="console-grid">
+        <div class="console-panel" id="console">
+          <div class="console-top">
+            <span class="console-dot red"></span><span class="console-dot yellow"></span><span class="console-dot green"></span>
+            <span class="console-title">Agent timeline</span>
+            <span class="run-badge" id="runBadge" hidden></span>
+          </div>
+          <p class="console-hint" id="modeHint">Select a case above and press Run. Each line is streamed live.</p>
+          <div class="alarm-bar" id="alarm" hidden></div>
+          <ul class="tl" id="timeline"><li class="tl-empty" id="emptyRow">No run yet &mdash; choose a vulnerability above.</li></ul>
+        </div>
+        <div class="verdict-panel">
+          <div class="console-top">
+            <span class="console-dot red"></span><span class="console-dot yellow"></span><span class="console-dot green"></span>
+            <span class="console-title">Verdict</span>
+          </div>
+          <p class="console-hint">A deterministic checker &mdash; not the AI &mdash; decides success.</p>
+          <div class="verdict-summary" id="summary" hidden></div>
+          <div class="verdict-body" id="verdict">
+            <div class="verdict-stamp" id="stamp">SEALED</div>
+            <div id="kv"></div>
+            <details id="diffWrap" hidden><summary class="diff-toggle">View the exact code diff</summary><pre class="diff-block" id="diff"></pre></details>
+          </div>
+          <p class="tl-empty" id="verdictEmpty">Result appears when the run finishes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== BEFORE / AFTER ======== -->
+  <section class="section" id="comparison">
+    <div class="section-inner">
+      <div class="section-label">Competitive comparison</div>
+      <h2 class="section-title">Why naive AI fixes fail &mdash; and TenantGuard doesn't</h2>
+      <p class="section-desc">Every vulnerability class has a naive fix that passes the security test but silently breaks legitimate functionality. TenantGuard's verifier catches the regression.</p>
+      <div class="compare-table" data-reveal>
+        <table>
+          <thead>
+            <tr><th>Vulnerability</th><th>Naive AI fix</th><th>What breaks</th><th>TenantGuard fix</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="vbadge idor">IDOR</span><span class="td-sub">A01:2021</span></td>
+              <td>Owner-only check<br><code>created_by == user.id</code></td>
+              <td class="cell-fail">Same-tenant user blocked</td>
+              <td>Tenant-scoped check<br><code>tenant_id == user.tenant_id</code></td>
+              <td class="cell-pass">8/8 tests pass</td>
+            </tr>
+            <tr>
+              <td><span class="vbadge sqli-b">SQLi</span><span class="td-sub">A03:2021</span></td>
+              <td>Strip non-alphanumeric<br><code>re.sub(r'[^a-z0-9 ]','')</code></td>
+              <td class="cell-fail">Search for "v2.0" returns 0</td>
+              <td>Parameterized query<br><code>WHERE team = ? AND LIKE ?</code></td>
+              <td class="cell-pass">8/8 tests pass</td>
+            </tr>
+            <tr>
+              <td><span class="vbadge trav-b">Path</span><span class="td-sub">A01:2021</span></td>
+              <td>basename() strip<br><code>os.path.basename(fp)</code></td>
+              <td class="cell-fail">Subdirectory files lost</td>
+              <td>realpath containment<br><code>target.startswith(user_dir)</code></td>
+              <td class="cell-pass">8/8 tests pass</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== OWASP COVERAGE ======== -->
+  <section class="section" id="owasp">
+    <div class="section-inner">
+      <div class="section-label">Coverage</div>
+      <h2 class="section-title">OWASP Top 10 (2021)</h2>
+      <p class="section-desc">TenantGuard covers 2 of the top 3 most dangerous web vulnerability categories. Extensible architecture supports all 10.</p>
+      <div class="owasp-row" data-reveal>
+        <div class="ow active"><div class="ow-num">A01</div><div class="ow-name">Broken Access Control</div><div class="ow-tags"><span>IDOR</span><span>Path Traversal</span></div></div>
+        <div class="ow dim"><div class="ow-num">A02</div><div class="ow-name">Cryptographic Failures</div></div>
+        <div class="ow active sqli-ow"><div class="ow-num">A03</div><div class="ow-name">Injection</div><div class="ow-tags"><span>SQL Injection</span></div></div>
+        <div class="ow dim"><div class="ow-num">A04</div><div class="ow-name">Insecure Design</div></div>
+        <div class="ow dim"><div class="ow-num">A05</div><div class="ow-name">Security Misconfig</div></div>
+        <div class="ow dim"><div class="ow-num">A06</div><div class="ow-name">Vulnerable Components</div></div>
+        <div class="ow dim"><div class="ow-num">A07</div><div class="ow-name">Auth Failures</div></div>
+        <div class="ow dim"><div class="ow-num">A08</div><div class="ow-name">Software Integrity</div></div>
+        <div class="ow dim"><div class="ow-num">A09</div><div class="ow-name">Logging Failures</div></div>
+        <div class="ow dim"><div class="ow-num">A10</div><div class="ow-name">SSRF</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== REPO SCANNER ======== -->
+  <section class="section" id="scanner-section">
+    <div class="section-inner">
+      <div class="section-label">Bonus tool</div>
+      <h2 class="section-title">Scan any public repo</h2>
+      <p class="section-desc">Paste a GitHub/GitLab/Bitbucket URL. TenantGuard clones it (read-only), scans for leaked secrets, dangerous configs, and injection patterns &mdash; with an optional AI summary.</p>
+      <div class="scanner-box" data-reveal>
+        <div class="scanner-input-row">
+          <input type="url" id="scanUrl" class="scanner-input" placeholder="https://github.com/owner/repo" autocomplete="off">
+          <button class="scanner-btn" id="scanBtn">Scan</button>
+        </div>
+        <div class="scanner-results" id="scanResults" hidden>
+          <div class="scanner-stats" id="scanStats"></div>
+          <div class="scanner-findings" id="scanFindings"></div>
+          <div class="scanner-summary" id="scanSummary" hidden></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== CI/CD ======== -->
+  <section class="section" id="cicd">
+    <div class="section-inner">
+      <div class="section-label">Integration</div>
+      <h2 class="section-title">CI/CD &mdash; GitHub Action</h2>
+      <p class="section-desc">Drop this into any repo. On every PR: scan, fix, verify, comment. The same self-correcting loop in your pipeline.</p>
+      <div class="cicd-panel" data-reveal>
+        <div class="cicd-top">
+          <span class="cicd-file">.github/workflows/tenantguard.yml</span>
+        </div>
+        <pre class="cicd-code"><span class="cy">name:</span> TenantGuard Security Audit
+<span class="cy">on:</span> [pull_request]
+<span class="cy">jobs:</span>
+  <span class="cy">security-check:</span>
+    <span class="cy">runs-on:</span> ubuntu-latest
+    <span class="cy">steps:</span>
+      - <span class="cy">uses:</span> actions/checkout@v4
+      - <span class="cy">uses:</span> JMadhan1/tenantguard-action@v1
+        <span class="cy">with:</span>
+          <span class="cy">scan-dir:</span> ./src
+          <span class="cy">auto-fix:</span> true
+          <span class="cy">verify:</span> true        <span class="cc"># tests must pass</span>
+          <span class="cy">model:</span> claude-opus-4.6</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== WHO ======== -->
+  <section class="section" id="who">
+    <div class="section-inner">
+      <div class="section-label">Use cases</div>
+      <h2 class="section-title">Who it's for</h2>
+      <div class="who-grid" data-reveal>
+        <div class="who-card">
+          <div class="who-emoji">&#128737;</div>
+          <h4>Security teams</h4>
+          <p>Auto-remediate IDOR, SQLi, and path traversal at scale &mdash; with verified patches, not guesses.</p>
+        </div>
+        <div class="who-card">
+          <div class="who-emoji">&#128640;</div>
+          <h4>SaaS builders</h4>
+          <p>Catch the most common web vulnerabilities before production. $0.005 per verified fix.</p>
+        </div>
+        <div class="who-card">
+          <div class="who-emoji">&#129302;</div>
+          <h4>AI engineers</h4>
+          <p>A pattern for trustworthy agents: let the model propose, let deterministic tests decide.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== EVIDENCE ======== -->
+  <section class="section" id="evidence">
+    <div class="section-inner">
+      <div class="section-label">Proof</div>
+      <h2 class="section-title">Every claim is checkable</h2>
+      <div class="ev-grid" data-reveal>
+        <a class="ev-card" href="https://www.loom.com/share/5a96c2f1a02e4450875d58c6affd943a" target="_blank" rel="noopener">
+          <div class="ev-tag">Video</div><h4>3-min walkthrough</h4><p>The agent, the recovery, the tools.</p></a>
+        <a class="ev-card" href="https://github.com/JMadhan1/tenantguard" target="_blank" rel="noopener">
+          <div class="ev-tag">Code</div><h4>Open source</h4><p>3 fixtures, 24 tests, self-healing agent.</p></a>
+        <a class="ev-card" href="https://entire.io/gh/JMadhan1/tenantguard/commit/41fa5d7108dc3f1d24684a2313dd430aa84a7c6d" target="_blank" rel="noopener">
+          <div class="ev-tag">Entire</div><h4>Build provenance</h4><p>How and why every line was written.</p></a>
+        <a class="ev-card" href="/neatlogs-trace.png" target="_blank" rel="noopener">
+          <div class="ev-tag">neatlogs</div><h4>API trace</h4><p>Every model call of a real Bedrock run.</p></a>
+        <a class="ev-card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/evidence/cfo-tenantguard-plan.xlsx" target="_blank" rel="noopener">
+          <div class="ev-tag">cfo.ai</div><h4>Business plan</h4><p>Cost, pricing, margin, runway.</p></a>
+        <a class="ev-card" href="https://github.com/JMadhan1/tenantguard/blob/main/docs/EVIDENCE.md" target="_blank" rel="noopener">
+          <div class="ev-tag">Index</div><h4>Evidence map</h4><p>Every claim linked to an artifact.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== SAFETY ======== -->
+  <section class="section" id="safety">
+    <div class="section-inner">
+      <div class="section-label">Safety</div>
+      <h2 class="section-title">Is this safe?</h2>
+      <div class="safety-grid" data-reveal>
+        <div class="safety-item"><b>Never runs your code.</b> Only built-in synthetic fixtures. Never a visitor's repo.</div>
+        <div class="safety-item"><b>Can't break anything.</b> Edits a throwaway copy. Never commits, pushes, or merges.</div>
+        <div class="safety-item"><b>Tests decide.</b> A fix only counts if ALL security AND ALL functionality tests pass.</div>
+        <div class="safety-item"><b>Bounded.</b> Rate-limited, daily-capped, all data synthetic, no secrets.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== FOOTER ======== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-tagline">Reproduce &middot; Fix &middot; Catch yourself &middot; Prove it.</div>
+      <div class="footer-row">
+        <span>Built by <b>Madhan J</b> &middot; team <b>AI LONE STAR</b> &middot; neatHack 2026</span>
+        <nav class="footer-links">
+          <a href="https://jmadhan.me" target="_blank" rel="noopener">Portfolio</a>
+          <a href="https://x.com/jmadhanai" target="_blank" rel="noopener">X</a>
+          <a href="https://github.com/JMadhan1" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+      </div>
+    </div>
   </footer>
 </div>
 <script src="/app.js"></script>
