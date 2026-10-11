@@ -5,6 +5,7 @@ Fill the `LINK` placeholders as you capture evidence. Keep every link; never cla
 | # | Required evidence | Artifact / where | How to verify |
 |---|---|---|---|
 | 1 | **Agent completes a substantial task** | `tenantguard_agent/` + demo video | Run `python run_case.py` → status `fixed`; watch the phase timeline |
+| ✓ | **Live run on AWS Bedrock (committed)** | `docs/evidence/live-bedrock-run.json` + `docs/evidence/live-bedrock-patch.diff` + `docs/report-live.html` | Claude **Opus 4.6** on Bedrock (`ap-south-1`), status `fixed`, **neatlogs: true**, $0.0050/fix — checkable in the repo |
 | 2 | **Before/after improvement** (two neatlogs traces, numbers compared) | `python run_case.py --live --quality baseline` then `--quality improved`; `docs/report.html`; neatlogs | Compare attempts / tokens / cost-per-fix across the two traces · baseline LINK · improved LINK |
 | 3 | **neatlogs use** (trace links/screenshots) | neatlogs dashboard project; `docs/evidence/` screenshots | Open the workflow traces; sanitized screenshots in repo if private · LINK |
 | 4 | **Entire use** (checkpoints / entire-graph) | checkpoints over the coding sessions; `docs/ENTIRE.md` | `entire checkpoint list` + `entire checkpoint explain HEAD`; checkpoint link + ID · LINK |

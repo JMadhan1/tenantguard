@@ -1,0 +1,70 @@
+{
+  "run_id": "run-1077bef2",
+  "case_id": "invoicely-idor-001",
+  "status": "fixed",
+  "brain": "llm",
+  "llm": {
+    "model": "global.anthropic.claude-opus-4-6-v1",
+    "quality": "improved",
+    "input_tokens": 1128,
+    "output_tokens": 273,
+    "cost_usd": 0.004986,
+    "neatlogs": true
+  },
+  "attempts": 1,
+  "baseline": {
+    "passed": 6,
+    "failed": 2
+  },
+  "verdict": {
+    "status": "fixed",
+    "success": true,
+    "security_pass": true,
+    "functionality_pass": true,
+    "regressions": [],
+    "security_fixed": [
+      "test_cross_tenant_read_blocked_alice_to_t2",
+      "test_cross_tenant_read_blocked_carol_to_t1"
+    ],
+    "still_failing": [],
+    "message": "All security and functionality tests pass. Cross-tenant access is blocked and legitimate access still works."
+  },
+  "events": [
+    {
+      "phase": "intake",
+      "detail": "case=invoicely-idor-001",
+      "ts": 1791652157.566
+    },
+    {
+      "phase": "baseline_tests",
+      "detail": "6 passed / 2 failed",
+      "ts": 1791652160.049
+    },
+    {
+      "phase": "inspect_code",
+      "detail": "read ['invoicely/app.py', 'invoicely/store.py']",
+      "ts": 1791652160.05
+    },
+    {
+      "phase": "propose_patch",
+      "detail": "attempt 1: llm attempt 1 (improved)",
+      "ts": 1791652165.686
+    },
+    {
+      "phase": "apply_in_worktree",
+      "detail": "invoicely/app.py",
+      "ts": 1791652165.687
+    },
+    {
+      "phase": "verify",
+      "detail": "status=fixed security=True functionality=True",
+      "ts": 1791652167.401
+    },
+    {
+      "phase": "export_report",
+      "detail": "fixed",
+      "ts": 1791652167.409
+    }
+  ],
+  "wall_seconds": 9.84
+}
