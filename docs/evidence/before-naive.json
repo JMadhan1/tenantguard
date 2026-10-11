@@ -1,0 +1,67 @@
+{
+  "run_id": "run-32535843",
+  "case_id": "invoicely-idor-001",
+  "status": "needs_review",
+  "brain": "offline-scripted",
+  "llm": null,
+  "attempts": 1,
+  "baseline": {
+    "passed": 6,
+    "failed": 2
+  },
+  "verdict": {
+    "status": "regressed",
+    "success": false,
+    "security_pass": true,
+    "functionality_pass": false,
+    "regressions": [
+      "test_same_tenant_other_user_allowed"
+    ],
+    "security_fixed": [
+      "test_cross_tenant_read_blocked_alice_to_t2",
+      "test_cross_tenant_read_blocked_carol_to_t1"
+    ],
+    "still_failing": [
+      "test_same_tenant_other_user_allowed"
+    ],
+    "message": "REGRESSION: ['test_same_tenant_other_user_allowed'] were passing and now fail. The last patch broke legitimate access \u2014 revert it and apply a more localized, tenant-scoped fix (not owner-scoped)."
+  },
+  "events": [
+    {
+      "phase": "intake",
+      "detail": "case=invoicely-idor-001",
+      "ts": 1791695578.067
+    },
+    {
+      "phase": "baseline_tests",
+      "detail": "6 passed / 2 failed",
+      "ts": 1791695579.729
+    },
+    {
+      "phase": "inspect_code",
+      "detail": "read ['invoicely/app.py', 'invoicely/store.py']",
+      "ts": 1791695579.73
+    },
+    {
+      "phase": "propose_patch",
+      "detail": "attempt 1: attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)",
+      "ts": 1791695579.73
+    },
+    {
+      "phase": "apply_in_worktree",
+      "detail": "invoicely/app.py",
+      "ts": 1791695579.731
+    },
+    {
+      "phase": "verify",
+      "detail": "status=regressed security=True functionality=False",
+      "ts": 1791695581.033
+    },
+    {
+      "phase": "human_review",
+      "detail": "needs_review",
+      "ts": 1791695581.037
+    }
+  ],
+  "wall_seconds": 2.97
+}

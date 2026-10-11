@@ -1,0 +1,83 @@
+{
+  "run_id": "run-e590c000",
+  "case_id": "invoicely-idor-001",
+  "status": "fixed",
+  "brain": "offline-scripted",
+  "llm": null,
+  "attempts": 2,
+  "baseline": {
+    "passed": 6,
+    "failed": 2
+  },
+  "verdict": {
+    "status": "fixed",
+    "success": true,
+    "security_pass": true,
+    "functionality_pass": true,
+    "regressions": [],
+    "security_fixed": [
+      "test_cross_tenant_read_blocked_alice_to_t2",
+      "test_cross_tenant_read_blocked_carol_to_t1"
+    ],
+    "still_failing": [],
+    "message": "All security and functionality tests pass. Cross-tenant access is blocked and legitimate access still works."
+  },
+  "events": [
+    {
+      "phase": "intake",
+      "detail": "case=invoicely-idor-001",
+      "ts": 1791695582.183
+    },
+    {
+      "phase": "baseline_tests",
+      "detail": "6 passed / 2 failed",
+      "ts": 1791695583.521
+    },
+    {
+      "phase": "inspect_code",
+      "detail": "read ['invoicely/app.py', 'invoicely/store.py']",
+      "ts": 1791695583.522
+    },
+    {
+      "phase": "propose_patch",
+      "detail": "attempt 1: attempt 1 - owner-only (labeled fault injection; will regress same-tenant access)",
+      "ts": 1791695583.522
+    },
+    {
+      "phase": "apply_in_worktree",
+      "detail": "invoicely/app.py",
+      "ts": 1791695583.523
+    },
+    {
+      "phase": "verify",
+      "detail": "status=regressed security=True functionality=False",
+      "ts": 1791695584.77
+    },
+    {
+      "phase": "classify_failure",
+      "detail": "reverted invoicely/app.py",
+      "ts": 1791695584.771
+    },
+    {
+      "phase": "propose_patch",
+      "detail": "attempt 2: tenant-scoped fix",
+      "ts": 1791695584.771
+    },
+    {
+      "phase": "apply_in_worktree",
+      "detail": "invoicely/app.py",
+      "ts": 1791695584.772
+    },
+    {
+      "phase": "verify",
+      "detail": "status=fixed security=True functionality=True",
+      "ts": 1791695585.895
+    },
+    {
+      "phase": "export_report",
+      "detail": "fixed",
+      "ts": 1791695585.899
+    }
+  ],
+  "wall_seconds": 3.72
+}

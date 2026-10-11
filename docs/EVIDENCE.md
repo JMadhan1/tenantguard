@@ -6,7 +6,7 @@ Fill the `LINK` placeholders as you capture evidence. Keep every link; never cla
 |---|---|---|---|
 | 1 | **Agent completes a substantial task** | `tenantguard_agent/` + demo video | Run `python run_case.py` → status `fixed`; watch the phase timeline |
 | ✓ | **Live run on AWS Bedrock (committed)** | `docs/evidence/live-bedrock-run.json` + `docs/evidence/live-bedrock-patch.diff` + `docs/report-live.html` | Claude **Opus 4.6** on Bedrock (`ap-south-1`), status `fixed`, **neatlogs: true**, $0.0050/fix — checkable in the repo |
-| 2 | **Before/after improvement** (two neatlogs traces, numbers compared) | `python run_case.py --live --quality baseline` then `--quality improved`; `docs/report.html`; neatlogs | Compare attempts / tokens / cost-per-fix across the two traces · baseline LINK · improved LINK |
+| 2 | **Before/after improvement** (numbers compared) | **`docs/BEFORE_AFTER.md`** + `docs/evidence/before-naive.json` (`needs_review`, shipped a regression) vs `docs/evidence/after-recover.json` (`fixed`) | Naive agent ships a regression (breaks legitimate access); TenantGuard's verify-and-recover catches it and reaches green. Plus live Bedrock cost/fix ($0.0044 vs $0.0050). neatlogs trace links: LINK |
 | 3 | **neatlogs use** (trace links/screenshots) | neatlogs dashboard project; `docs/evidence/` screenshots | Open the workflow traces; sanitized screenshots in repo if private · LINK |
 | 4 | **Entire use** (checkpoints / entire-graph) | checkpoints over the coding sessions; `docs/ENTIRE.md` | `entire checkpoint list` + `entire checkpoint explain HEAD`; checkpoint link + ID · LINK |
 | 5 | **cfo.ai use** (business plan) | `BUSINESS_PLAN.md` + cfo.ai export in `docs/evidence/` | Open the cfo.ai plan with measured cost-per-fix · LINK |
