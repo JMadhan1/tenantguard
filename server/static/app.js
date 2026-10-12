@@ -79,9 +79,16 @@
       if (costEl) costEl.textContent = d.avg_cost ? "$" + d.avg_cost.toFixed(4) : "--";
       var owEl = $("kpiOwasp");
       if (owEl) owEl.textContent = (d.owasp_coverage || []).length || 2;
+      animateCount($("kpiScans"), d.scans || 0);
+      animateCount($("kpiVisitors"), d.visits || 0);
+      var uq = $("kpiUnique");
+      if (uq) uq.textContent = d.unique_visitors || 0;
     }).catch(function () {});
   }
-  refreshAnalytics();
+  // Record this visit, then show the fresh numbers.
+  fetch("/api/track", { method: "POST" })
+    .then(function () { refreshAnalytics(); })
+    .catch(function () { refreshAnalytics(); });
 
   // ---- Animated counter -----------------------------------------------
   function animateCount(el, target) {
@@ -265,43 +272,109 @@
   var scanResults = $("scanResults");
   var scanStats = $("scanStats");
   var scanFindings = $("scanFindings");
+  var scanFindingsHead = $("scanFindingsHead");
   var scanSummary = $("scanSummary");
+  var scanEvs = null;
 
-  if (scanBtn) scanBtn.addEventListener("click", function () {
-    var url = (scanUrl.value || "").trim();
-    if (!url) return;
-    scanBtn.disabled = true; scanBtn.textContent = "Scanning...";
-    scanResults.hidden = false; scanStats.textContent = "Cloning repository...";
-    scanFindings.innerHTML = ""; scanSummary.hidden = true;
+  // Build a link to the exact file + line on the hosting provider, new tab.
+  function fileUrl(repo, file, line) {
+    if (!repo || !file) return null;
+    var base = repo.replace(/\.git$/, "").replace(/\/+$/, "");
+    var host = "";
+    try { host = new URL(base).hostname.toLowerCase(); } catch (e) { return null; }
+    var mid, frag = line ? "#L" + line : "";
+    if (host.indexOf("gitlab") >= 0) { mid = "/-/blob/HEAD/"; }
+    else if (host.indexOf("bitbucket") >= 0) { mid = "/src/HEAD/"; frag = line ? "#lines-" + line : ""; }
+    else { mid = "/blob/HEAD/"; }  // github + default
+    return base + mid + file.split("/").map(encodeURIComponent).join("/") + frag;
+  }
 
-    var evs = new EventSource("/api/scan?repo_url=" + encodeURIComponent(url));
-    var count = 0;
-    evs.addEventListener("stage", function (e) {
-      scanStats.textContent = JSON.parse(e.data).msg;
+  function sevLabel(s) { return (s || "").charAt(0).toUpperCase() + (s || "").slice(1); }
+
+  function addFinding(repo, f) {
+    if (scanFindingsHead) scanFindingsHead.hidden = false;
+    var href = fileUrl(repo, f.file, f.line);
+    var el = document.createElement(href ? "a" : "div");
+    el.className = "sf-row";
+    if (href) { el.href = href; el.target = "_blank"; el.rel = "noopener"; }
+    el.innerHTML =
+      '<span class="sf-sev ' + (f.severity || "low") + '">' + sevLabel(f.severity) + '</span>' +
+      '<span class="sf-main"><span class="sf-title"></span>' +
+      '<span class="sf-loc"></span></span>' +
+      (href ? '<span class="sf-open">open &#8599;</span>' : '');
+    el.querySelector(".sf-title").textContent = f.title || "Finding";
+    el.querySelector(".sf-loc").textContent = f.file + (f.line ? ":" + f.line : "");
+    scanFindings.appendChild(el);
+  }
+
+  function sevChips(by) {
+    if (!by) return "";
+    var order = ["critical", "high", "medium", "low"], out = "";
+    order.forEach(function (s) {
+      if (by[s]) out += '<span class="chip ' + s + '">' + by[s] + " " + sevLabel(s) + "</span>";
     });
-    evs.addEventListener("finding", function (e) {
+    return out;
+  }
+
+  function resetScanBtn() {
+    scanBtn.disabled = false;
+    scanBtn.innerHTML = '<span class="sb-label">Scan repo</span>';
+  }
+
+  function runScan(url) {
+    url = (url || "").trim();
+    if (!url || scanEvs) return;
+    // open the panel and jump to it so people see progress
+    scanBtn.disabled = true;
+    scanBtn.innerHTML = '<span class="sb-label">Scanning&hellip;</span>';
+    scanResults.hidden = false;
+    scanStats.innerHTML = '<span class="scan-run">Cloning repository (read-only)&hellip;</span>';
+    scanFindings.innerHTML = ""; scanSummary.hidden = true; scanSummary.textContent = "";
+    if (scanFindingsHead) scanFindingsHead.hidden = true;
+    scanResults.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+    var repo = url, count = 0;
+    scanEvs = new EventSource("/api/scan?repo_url=" + encodeURIComponent(url));
+    scanEvs.addEventListener("stage", function (e) {
+      scanStats.innerHTML = '<span class="scan-run">' + JSON.parse(e.data).msg + '</span>';
+    });
+    scanEvs.addEventListener("finding", function (e) {
       count++;
-      var f = JSON.parse(e.data);
-      var div = document.createElement("div"); div.className = "sf-row";
-      div.innerHTML = '<span class="sf-sev ' + f.severity + '"></span><span></span>';
-      div.children[0].textContent = f.severity;
-      div.children[1].textContent = f.title + " — " + f.file + ":" + f.line;
-      scanFindings.appendChild(div);
-      scanStats.textContent = count + " findings so far...";
+      addFinding(repo, JSON.parse(e.data));
+      scanStats.innerHTML = '<span class="scan-run">Scanning&hellip; ' + count + ' finding' + (count === 1 ? "" : "s") + ' so far</span>';
     });
-    evs.addEventListener("done", function (e) {
+    scanEvs.addEventListener("done", function (e) {
       var d = JSON.parse(e.data);
-      scanStats.textContent = "Scanned " + d.scanned + " files — " + d.count + " findings";
-      if (d.summary) { scanSummary.textContent = d.summary; scanSummary.hidden = false; }
-      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+      var head = d.count
+        ? '<b>' + d.count + '</b> finding' + (d.count === 1 ? "" : "s") + ' across <b>' + d.scanned + '</b> files'
+        : '<b>No obvious issues</b> found across <b>' + d.scanned + '</b> files';
+      scanStats.innerHTML = '<div class="scan-done">' + head + '</div><div class="scan-chips">' + sevChips(d.by_severity) + '</div>';
+      if (d.summary) {
+        scanSummary.innerHTML = '<div class="ss-head">&#129504; Claude’s fix summary</div><div class="ss-body"></div>';
+        scanSummary.querySelector(".ss-body").textContent = d.summary;
+        scanSummary.hidden = false;
+      }
+      scanEvs.close(); scanEvs = null; resetScanBtn();
     });
-    evs.addEventListener("busy", function (e) {
-      scanStats.textContent = JSON.parse(e.data).message;
-      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+    scanEvs.addEventListener("busy", function (e) {
+      scanStats.innerHTML = '<span class="scan-run">' + JSON.parse(e.data).message + '</span>';
+      scanEvs.close(); scanEvs = null; resetScanBtn();
     });
-    evs.addEventListener("error", function () {
-      scanStats.textContent = "Scan ended. " + count + " findings found.";
-      evs.close(); scanBtn.disabled = false; scanBtn.textContent = "Scan";
+    scanEvs.addEventListener("error", function () {
+      if (!count) scanStats.innerHTML = '<span class="scan-run">Scan ended &mdash; check the URL is a public repo and try again.</span>';
+      scanEvs.close(); scanEvs = null; resetScanBtn();
+    });
+  }
+
+  if (scanBtn) scanBtn.addEventListener("click", function () { runScan(scanUrl.value); });
+  if (scanUrl) scanUrl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); runScan(scanUrl.value); }
+  });
+  document.querySelectorAll(".scan-ex").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var r = b.getAttribute("data-repo");
+      if (scanUrl) scanUrl.value = r;
+      runScan(r);
     });
   });
 

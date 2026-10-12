@@ -18,6 +18,7 @@
     <div class="topbar-inner">
       <div class="logo"><span class="logo-icon"></span><b>TenantGuard</b></div>
       <nav class="topnav">
+        <a href="#scanner-section" class="nav-scan">Scan repo</a>
         <a href="#cases">Cases</a>
         <a href="#console-section">Live demo</a>
         <a href="#owasp">OWASP</a>
@@ -46,7 +47,12 @@
         <span class="pill pill-green"><span class="pill-num">$0.005</span> per fix</span>
         <span class="pill pill-orange"><span class="pill-num">Self</span> healing</span>
       </div>
-      <a href="#cases" class="hero-cta">Choose a vulnerability &darr;</a>
+      <div class="hero-ctas">
+        <a href="#scanner-section" class="hero-cta hero-cta-primary">
+          <span class="cta-icon">&#128269;</span> Get started &mdash; scan your repo
+        </a>
+        <a href="#cases" class="hero-cta hero-cta-ghost">Or watch a live fix &darr;</a>
+      </div>
       <div class="hero-status" id="statusLine"><span class="status-dot"></span>checking...</div>
     </div>
   </section>
@@ -80,6 +86,15 @@
         <div class="kpi" data-reveal>
           <div class="kpi-value" id="kpiOwasp">2</div>
           <div class="kpi-name">OWASP categories</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value" id="kpiScans" data-count="0">0</div>
+          <div class="kpi-name">Repos scanned</div>
+        </div>
+        <div class="kpi" data-reveal>
+          <div class="kpi-value" id="kpiVisitors" data-count="0">0</div>
+          <div class="kpi-name">Visitors</div>
+          <div class="kpi-sub"><span id="kpiUnique">0</span> unique this session</div>
         </div>
       </div>
     </div>
@@ -283,22 +298,39 @@
   </section>
 
   <!-- ======== REPO SCANNER ======== -->
-  <section class="section" id="scanner-section">
+  <section class="section scanner-section" id="scanner-section">
     <div class="section-inner">
-      <div class="section-label">Bonus tool</div>
-      <h2 class="section-title">Scan any public repo</h2>
-      <p class="section-desc">Paste a GitHub/GitLab/Bitbucket URL. TenantGuard clones it (read-only), scans for leaked secrets, dangerous configs, and injection patterns &mdash; with an optional AI summary.</p>
+      <div class="section-label accent-label">Scan your repo</div>
+      <h2 class="section-title">Find the vulnerabilities in your code</h2>
+      <p class="section-desc">Paste any public GitHub/GitLab/Bitbucket repo. TenantGuard clones it <b>read-only</b> (never runs it), scans for leaked secrets, dangerous configs, and injection patterns, then Claude writes a plain-English summary of what to fix first.</p>
+
+      <div class="scan-flow" data-reveal>
+        <span class="sfw-step"><span class="sfw-num">1</span> Paste repo</span>
+        <span class="sfw-arrow">&rarr;</span>
+        <span class="sfw-step"><span class="sfw-num">2</span> Scan</span>
+        <span class="sfw-arrow">&rarr;</span>
+        <span class="sfw-step"><span class="sfw-num">3</span> See findings</span>
+        <span class="sfw-arrow">&rarr;</span>
+        <span class="sfw-step"><span class="sfw-num">4</span> Fix summary</span>
+      </div>
+
       <div class="scanner-box" data-reveal>
         <div class="scanner-input-row">
-          <input type="url" id="scanUrl" class="scanner-input" placeholder="https://github.com/owner/repo" autocomplete="off">
-          <button class="scanner-btn" id="scanBtn">Scan</button>
+          <input type="url" id="scanUrl" class="scanner-input" placeholder="https://github.com/owner/repo" autocomplete="off" spellcheck="false">
+          <button class="scanner-btn" id="scanBtn"><span class="sb-label">Scan repo</span></button>
+        </div>
+        <div class="scan-examples">
+          <span class="scan-ex-label">Try an example:</span>
+          <button class="scan-ex" data-repo="https://github.com/JMadhan1/tenantguard">JMadhan1/tenantguard</button>
         </div>
         <div class="scanner-results" id="scanResults" hidden>
           <div class="scanner-stats" id="scanStats"></div>
-          <div class="scanner-findings" id="scanFindings"></div>
           <div class="scanner-summary" id="scanSummary" hidden></div>
+          <div class="scan-findings-head" id="scanFindingsHead" hidden>Findings <span class="sfh-hint">&mdash; click any row to open the file on the repo in a new tab</span></div>
+          <div class="scanner-findings" id="scanFindings"></div>
         </div>
       </div>
+      <p class="scan-note">Read-only &amp; private: nothing is stored, the clone is deleted right after scanning, and your code is never executed.</p>
     </div>
   </section>
 

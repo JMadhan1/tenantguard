@@ -47,8 +47,19 @@ _day = {"date": _dt.date.today(), "live_runs": 0}
 # ---- Analytics tracking (in-memory, resets on deploy) -------------------------
 _ANALYTICS = {
     "total": 0, "fixed": 0, "recovered": 0, "total_cost": 0.0,
-    "by_case": {},
+    "by_case": {}, "visits": 0, "scans": 0, "ips": set(),
 }
+
+
+def _track_visit(ip: str):
+    with _LOCK:
+        _ANALYTICS["visits"] += 1
+        _ANALYTICS["ips"].add(ip or "?")
+
+
+def _track_scan():
+    with _LOCK:
+        _ANALYTICS["scans"] += 1
 
 
 def _track_run(case_id: str, status: str, attempts: int, cost: float | None):
@@ -131,6 +142,14 @@ def status():
             "daily_live_used": used, "daily_live_cap": DAILY_CAP}
 
 
+@app.post("/api/track")
+def track(request: Request):
+    """Record a page visit (visitor analytics). No PII stored — IP is held in
+    memory only to count unique visitors for the current server uptime."""
+    _track_visit(request.client.host if request.client else "?")
+    return {"ok": True}
+
+
 @app.get("/api/cases")
 def list_cases():
     """Return metadata for all allowlisted cases."""
@@ -156,6 +175,9 @@ def analytics():
         recovered = _ANALYTICS["recovered"]
         cost = _ANALYTICS["total_cost"]
         by_case = {k: dict(v) for k, v in _ANALYTICS["by_case"].items()}
+        visits = _ANALYTICS["visits"]
+        unique_visitors = len(_ANALYTICS["ips"])
+        scans = _ANALYTICS["scans"]
     return {
         "total_runs": total,
         "fixed": fixed,
@@ -165,6 +187,9 @@ def analytics():
         "avg_cost": round(cost / fixed, 4) if fixed else 0,
         "total_cost": round(cost, 4),
         "by_case": by_case,
+        "visits": visits,
+        "unique_visitors": unique_visitors,
+        "scans": scans,
         "cases_available": len(CASES),
         "owasp_coverage": sorted(set(
             getattr(c, "owasp", "") for c in CASES.values() if getattr(c, "owasp", "")
@@ -333,6 +358,7 @@ def scan(request: Request, repo_url: str = Query(...)):
                 _note_live_run()
                 yield _sse("stage", {"msg": "Asking Claude for a risk assessment..."})
                 summary = _ai_summary(repo_url, findings)
+            _track_scan()
             yield _sse("done", {"scanned": scanned, "count": len(findings),
                                 "by_severity": _counts(findings), "summary": summary})
         except Exception as e:  # pragma: no cover
