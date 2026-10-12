@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TenantGuard — Explainer</title>
+<meta name="description" content="A self-playing animated explainer for TenantGuard — the AI security agent that catches its own mistakes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#070b16; --panel:#0e1424; --panel2:#131b2f; --line:#1e2740;
+  --ink:#f3f6fd; --muted:#8b97b5; --muted2:#6b7794;
+  --blue:#4f7cff; --purple:#9b6bff; --cyan:#22d3ee;
+  --green:#22c55e; --red:#ff5a5f; --orange:#f5a524;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --font:'Inter',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font);
+  display:grid; place-items:center; min-height:100%;
+  overflow:hidden; padding:16px;
+}
+
+/* ---------- Stage (16:9 video frame) ---------- */
+.stage{
+  position:relative; width:min(100%,1120px); aspect-ratio:16/9;
+  background:
+    radial-gradient(1200px 500px at 20% -10%, rgba(79,124,255,.18), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(155,107,255,.16), transparent 60%),
+    linear-gradient(180deg,#0a0f1e,#070b16);
+  border:1px solid var(--line); border-radius:20px; overflow:hidden;
+  box-shadow:0 40px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+}
+.grid-bg{
+  position:absolute; inset:0; opacity:.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask:radial-gradient(circle at 50% 45%,#000 30%,transparent 85%);
+  animation:drift 24s linear infinite;
+}
+@keyframes drift{to{background-position:46px 46px,46px 46px}}
+
+/* ---------- Scene system ---------- */
+.scene{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center;
+  padding:clamp(20px,5%,64px); gap:18px;
+  opacity:0; transform:scale(.985); pointer-events:none;
+  transition:opacity .7s ease, transform .7s ease;
+}
+.scene.active{opacity:1; transform:none; pointer-events:auto}
+
+/* container scale: use cqw for proportional text across sizes */
+.stage{container-type:inline-size}
+.eyebrow{
+  font-family:var(--mono); font-size:2.4cqw; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--blue); font-weight:600;
+}
+.headline{ font-size:5.6cqw; font-weight:800; line-height:1.08; letter-spacing:-.01em; max-width:17em; text-wrap:balance }
+.sub{ font-size:2.5cqw; color:var(--muted); max-width:36em; line-height:1.5 }
+.grad{ background:linear-gradient(100deg,var(--blue),var(--purple) 55%,var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent }
+.b-red{color:var(--red)} .b-green{color:var(--green)} .b-blue{color:var(--blue)} .b-orange{color:var(--orange)}
+
+/* reveal helpers (run only while scene is active) */
+.scene.active .r{ animation:rise .7s both }
+.scene.active .r2{ animation:rise .7s .18s both }
+.scene.active .r3{ animation:rise .7s .36s both }
+.scene.active .r4{ animation:rise .7s .54s both }
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.scene.active .pop{ animation:pop .5s cubic-bezier(.3,1.4,.5,1) both }
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+
+/* ---------- Scene 1: Intro ---------- */
+.shield{
+  width:16cqw; height:16cqw; position:relative; display:grid; place-items:center;
+  filter:drop-shadow(0 10px 40px rgba(79,124,255,.5));
+}
+.shield svg{width:100%;height:100%}
+.scene.active .shield{animation:pop .7s cubic-bezier(.3,1.4,.5,1) both}
+.scene.active .shield .ring{animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand{font-size:8.5cqw;font-weight:900;letter-spacing:-.03em}
+.ticker{font-family:var(--mono);font-size:2cqw;color:var(--muted2);letter-spacing:.1em}
+
+/* ---------- Generic card / code ---------- */
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.win{ width:min(78cqw,760px); text-align:left; overflow:hidden }
+.win-bar{display:flex;align-items:center;gap:7px;padding:2.2cqw;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.dot{width:1.3cqw;height:1.3cqw;border-radius:50%}
+.dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+.win-title{font-family:var(--mono);font-size:1.9cqw;color:var(--muted2);margin-left:6px}
+.code{font-family:var(--mono);font-size:2cqw;line-height:1.8;padding:3cqw}
+.code .ln{display:block;white-space:pre;color:#aeb8d4}
+.cmt{color:#5b6b8f}.kw{color:var(--purple)}.str{color:var(--green)}.red{color:var(--red)}
+
+/* badges / stamps */
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:1.9cqw;font-weight:700;padding:.6em 1em;border-radius:999px}
+.badge.ok{background:rgba(34,197,94,.14);color:var(--green);border:1px solid rgba(34,197,94,.35)}
+.badge.bad{background:rgba(255,90,95,.14);color:var(--red);border:1px solid rgba(255,90,95,.4)}
+.stamp{
+  font-family:var(--mono);font-weight:800;letter-spacing:.06em;
+  border:3px solid var(--red);color:var(--red);padding:.3em .7em;border-radius:10px;
+  font-size:3.4cqw;transform:rotate(-7deg);
+}
+.scene.active .slam{animation:slam .6s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes slam{0%{opacity:0;transform:rotate(-7deg) scale(2.4)}70%{opacity:1}100%{opacity:1;transform:rotate(-7deg) scale(1)}}
+
+/* ---------- Scene 3: Loop pipeline ---------- */
+.flow{display:flex;align-items:center;gap:1.6cqw;flex-wrap:wrap;justify-content:center;max-width:92cqw}
+.node{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:1.8cqw 2.2cqw;min-width:17cqw;
+}
+.node .nt{font-weight:700;font-size:2.3cqw}
+.node .nd{font-family:var(--mono);font-size:1.5cqw;color:var(--muted2);margin-top:.2em}
+.node.warn{border-color:rgba(255,90,95,.5);box-shadow:0 0 0 1px rgba(255,90,95,.25),0 0 30px rgba(255,90,95,.2)}
+.node.ok{border-color:rgba(34,197,94,.55);box-shadow:0 0 30px rgba(34,197,94,.2)}
+.arrow{color:var(--muted2);font-size:3cqw;font-weight:700}
+.scene.active .n1{animation:pop .5s .1s both}
+.scene.active .n2{animation:pop .5s .5s both}
+.scene.active .n3{animation:pop .5s .9s both}
+.scene.active .n4{animation:pop .5s 1.5s both}
+.scene.active .n5{animation:pop .5s 2.2s both}
+.scene.active .a1{animation:rise .4s .4s both}
+.scene.active .a2{animation:rise .4s .8s both}
+.scene.active .a3{animation:rise .4s 1.9s both}
+.loopback{font-family:var(--mono);font-size:1.9cqw;color:var(--red);display:flex;align-items:center;gap:.5em}
+.scene.active .loopback{animation:rise .5s 1.2s both}
+
+/* ---------- Terminal typing ---------- */
+.term .ln{opacity:0}
+.scene.active .term .ln{animation:type .01s linear forwards}
+.scene.active .term .ln.t0{animation-delay:.3s}
+.scene.active .term .ln.t1{animation-delay:1.3s}
+.scene.active .term .ln.t2{animation-delay:2.5s}
+.scene.active .term .ln.t3{animation-delay:3.9s}
+.scene.active .term .ln.t4{animation-delay:5.1s}
+.scene.active .term .ln.t5{animation-delay:6.3s}
+@keyframes type{to{opacity:1}}
+.pill{font-family:var(--mono);font-size:1.5cqw;padding:.1em .6em;border-radius:5px;font-weight:700}
+.pill.pass{background:rgba(34,197,94,.15);color:var(--green)}
+.pill.fail{background:rgba(255,90,95,.15);color:var(--red)}
+.pill.rev{background:rgba(245,165,36,.15);color:var(--orange)}
+
+/* ---------- Stat tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4cqw;width:min(86cqw,860px)}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:2.6cqw 1.5cqw}
+.tile .v{font-size:5cqw;font-weight:800;line-height:1}
+.tile .k{font-size:1.7cqw;color:var(--muted);margin-top:.5em;font-weight:500}
+.scene.active .tile{animation:pop .5s both}
+.scene.active .tile:nth-child(2){animation-delay:.12s}
+.scene.active .tile:nth-child(3){animation-delay:.24s}
+.scene.active .tile:nth-child(4){animation-delay:.36s}
+@media(max-width:620px){ .tiles{grid-template-columns:repeat(2,1fr)} }
+
+/* ---------- Scan scene ---------- */
+.scanbar{display:flex;gap:1cqw;width:min(72cqw,680px)}
+.scaninput{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:1.8cqw 2.2cqw;font-family:var(--mono);font-size:2cqw;color:var(--ink);text-align:left}
+.scanbtn{background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:10px;padding:1.8cqw 2.6cqw;font-weight:700;font-size:2cqw}
+.finding{display:flex;align-items:center;gap:1.2cqw;width:min(72cqw,680px);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.8cqw 2.2cqw;text-align:left}
+.sev{font-family:var(--mono);font-size:1.5cqw;font-weight:700;padding:.3em .7em;border-radius:6px;background:rgba(245,165,36,.15);color:var(--orange)}
+.fmeta{font-family:var(--mono);font-size:1.6cqw;color:var(--muted2);margin-top:.2em}
+.fopen{margin-left:auto;font-family:var(--mono);font-size:1.6cqw;color:var(--blue);font-weight:700}
+.scene.active .scan-run{animation:rise .5s .2s both}
+.scene.active .scan-find{animation:pop .6s 1.4s both}
+
+/* ---------- Tools row ---------- */
+.tools{display:flex;gap:1.4cqw;flex-wrap:wrap;justify-content:center}
+.tool{font-family:var(--mono);font-size:1.9cqw;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:.6em 1.2em}
+.tool b{color:var(--ink)}
+
+/* ---------- CTA ---------- */
+.url{font-family:var(--mono);font-size:3.2cqw;font-weight:700;color:var(--cyan)}
+.credit{font-size:2cqw;color:var(--muted)}
+
+/* ---------- Progress + controls ---------- */
+.hud{position:absolute;left:0;right:0;bottom:0;padding:0 20px 16px;display:flex;flex-direction:column;gap:10px;z-index:5;
+  opacity:0;transition:opacity .3s}
+.stage:hover .hud{opacity:1}
+.progress{display:flex;gap:6px}
+.pseg{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.pseg i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--purple))}
+.pseg.done i{width:100%}
+.pseg.active i{animation:fill var(--dur,6s) linear forwards}
+@keyframes fill{to{width:100%}}
+.ctrls{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--muted2)}
+.ctrls button{font-family:var(--mono);font-size:12px;color:var(--ink);background:rgba(255,255,255,.07);
+  border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;transition:background .15s}
+.ctrls button:hover{background:rgba(255,255,255,.14)}
+.watermark{position:absolute;top:16px;right:18px;font-family:var(--mono);font-size:1.5cqw;color:var(--muted2);letter-spacing:.1em;z-index:4}
+.logo-mini{position:absolute;top:14px;left:18px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:2cqw;z-index:4;opacity:.9}
+.logo-mini .d{width:1.5cqw;height:1.5cqw;border-radius:5px;background:linear-gradient(135deg,var(--blue),var(--purple))}
+.cap{position:absolute;left:0;right:0;bottom:64px;text-align:center;font-size:2.2cqw;color:var(--muted);padding:0 8%}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="grid-bg"></div>
+  <div class="logo-mini"><span class="d"></span>TenantGuard</div>
+  <div class="watermark">neatHack 2026</div>
+
+  <!-- 1 · INTRO -->
+  <section class="scene" data-dur="4600">
+    <div class="shield">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle class="ring" cx="50" cy="50" r="46" stroke="url(#g1)" stroke-width="1.5" stroke-dasharray="6 10" opacity=".6"/>
+        <path d="M50 8 L86 22 V52 C86 74 70 88 50 94 C30 88 14 74 14 52 V22 Z" fill="url(#g1)" opacity=".16" stroke="url(#g1)" stroke-width="2"/>
+        <path d="M34 50 L46 62 L68 38" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="100" y2="100">
+          <stop offset="0" stop-color="#4f7cff"/><stop offset="1" stop-color="#9b6bff"/>
+        </linearGradient></defs>
+      </svg>
+    </div>
+    <h1 class="brand r2">Tenant<span class="grad">Guard</span></h1>
+    <p class="sub r3" style="font-size:2.8cqw">The AI security agent that <b class="b-blue">doesn't trust itself.</b></p>
+    <p class="ticker r4">It fixes the bug &middot; catches its own bad fix &middot; proves it with tests</p>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="scene" data-dur="7000">
+    <div class="eyebrow r">The problem</div>
+    <h2 class="headline r2">AI fix-bots ship <span class="b-red">broken patches</span></h2>
+    <div class="card win r3" style="width:min(70cqw,680px)">
+      <div class="win-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="win-title">auth.py — "fixed" by a naive agent</span></div>
+      <div class="code">
+        <span class="ln"><span class="cmt"># blocks the attacker ✔</span></span>
+        <span class="ln"><span class="kw">if</span> invoice.created_by != user.id:</span>
+        <span class="ln">    <span class="kw">raise</span> Forbidden()</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:2cqw;align-items:center;flex-wrap:wrap;justify-content:center">
+      <span class="badge ok pop" style="animation-delay:.8s">&#10003; Security test passed</span>
+      <span class="stamp slam" style="animation-delay:1.6s">&#10007; BROKE LEGIT ACCESS</span>
+    </div>
+    <p class="sub r4">The patch passes the exploit test — but silently locks out real users. <b>Nobody checks.</b></p>
+  </section>
+
+  <!-- 3 · THE LOOP -->
+  <section class="scene" data-dur="9200">
+    <div class="eyebrow r">The fix &mdash; a self-healing loop</div>
+    <h2 class="headline r2">It catches its <span class="grad">own mistakes</span></h2>
+    <div class="flow">
+      <div class="node n1"><div class="nt">Reproduce</div><div class="nd">confirm the bug</div></div>
+      <span class="arrow a1">&rarr;</span>
+      <div class="node n2"><div class="nt">Fix</div><div class="nd">propose a patch</div></div>
+      <span class="arrow a2">&rarr;</span>
+      <div class="node warn n3"><div class="nt b-red">Verify</div><div class="nd">REGRESSED &#9888;</div></div>
+    </div>
+    <div class="loopback">&#8630; revert the bad fix &middot; retry with feedback</div>
+    <div class="flow">
+      <div class="node n4"><div class="nt">Fix v2</div><div class="nd">tenant-scoped</div></div>
+      <span class="arrow a3">&rarr;</span>
+      <div class="node ok n5"><div class="nt b-green">SEALED &#10003;</div><div class="nd">all tests pass</div></div>
+    </div>
+    <p class="sub r4">Security <b class="b-green">and</b> functionality must both pass — or it reverts and tries again.</p>
+  </section>
+
+  <!-- 4 · REAL RUN -->
+  <section class="scene" data-dur="9000">
+    <div class="eyebrow r">A real, unedited run</div>
+    <div class="card win term r2" style="width:min(80cqw,780px)">
+      <div class="win-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="win-title">invoicely · IDOR (Broken Access Control)</span></div>
+      <div class="code">
+        <span class="ln t0">baseline_tests      6 passed / 2 failed</span>
+        <span class="ln t1">propose_patch       attempt 1: owner-only fix</span>
+        <span class="ln t2">verify              <span class="pill fail">REGRESSED</span>  broke same-tenant access</span>
+        <span class="ln t3">classify_failure    <span class="pill rev">REVERTED</span>  caught its own bad fix</span>
+        <span class="ln t4">propose_patch       attempt 2: tenant-scoped fix</span>
+        <span class="ln t5">verify              <span class="pill pass">FIXED</span>  security + functionality pass</span>
+      </div>
+    </div>
+    <p class="sub r3" style="animation-delay:6.6s">A naive agent ships attempt 1. TenantGuard catches itself &mdash; <b class="b-blue">every time.</b></p>
+  </section>
+
+  <!-- 5 · PROOF / STATS -->
+  <section class="scene" data-dur="7400">
+    <div class="eyebrow r">Verified by tests &mdash; not AI confidence</div>
+    <h2 class="headline r2">A deterministic checker decides. <span class="grad">Not the model.</span></h2>
+    <div class="tiles">
+      <div class="tile"><div class="v grad">3</div><div class="k">Vulnerability classes</div></div>
+      <div class="tile"><div class="v">8</div><div class="k">Tests per case</div></div>
+      <div class="tile"><div class="v b-green">$0.005</div><div class="k">Cost per verified fix</div></div>
+      <div class="tile"><div class="v b-blue">A01·A03</div><div class="k">OWASP Top 10 covered</div></div>
+    </div>
+    <p class="sub r4">IDOR &middot; SQL Injection &middot; Path Traversal — each with a planted bug, a trap fix, and deterministic tests.</p>
+  </section>
+
+  <!-- 6 · SCAN YOUR REPO -->
+  <section class="scene" data-dur="7600">
+    <div class="eyebrow r">Scan your own repo</div>
+    <h2 class="headline r2">Paste any repo. Find the <span class="b-orange">vulnerabilities.</span></h2>
+    <div class="scanbar scan-run">
+      <div class="scaninput">github.com/your-org/your-repo</div>
+      <div class="scanbtn">Scan repo</div>
+    </div>
+    <div class="finding scan-find">
+      <span class="sev">HIGH</span>
+      <div><div style="font-weight:700;font-size:2cqw">DB connection string with password</div>
+      <div class="fmeta">config/settings.py:14</div></div>
+      <span class="fopen">open &#8599;</span>
+    </div>
+    <p class="sub r4">Read-only clone &middot; leaked secrets, bad configs, injection patterns &middot; <b class="b-blue">Claude writes the fix summary.</b></p>
+  </section>
+
+  <!-- 7 · CTA -->
+  <section class="scene" data-dur="6400">
+    <div class="shield" style="width:11cqw"><svg viewBox="0 0 100 100" fill="none">
+      <path d="M50 8 L86 22 V52 C86 74 70 88 50 94 C30 88 14 74 14 52 V22 Z" fill="url(#g2)" opacity=".16" stroke="url(#g2)" stroke-width="2"/>
+      <path d="M34 50 L46 62 L68 38" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs><linearGradient id="g2" x1="0" y1="0" x2="100" y2="100"><stop offset="0" stop-color="#4f7cff"/><stop offset="1" stop-color="#9b6bff"/></linearGradient></defs>
+    </svg></div>
+    <h1 class="brand r2" style="font-size:7cqw">Tenant<span class="grad">Guard</span></h1>
+    <p class="url r3">tenantguard.jmadhan.me</p>
+    <div class="tools r4">
+      <span class="tool">Powered by <b>Claude Opus</b> on <b>AWS Bedrock</b></span>
+      <span class="tool">Traced by <b>neatlogs</b></span>
+      <span class="tool">Built with <b>Entire</b></span>
+      <span class="tool">Priced by <b>cfo.ai</b></span>
+    </div>
+    <p class="credit r4">Team <b style="color:var(--ink)">AI LONE STAR</b> &middot; led by Madhan J &middot; neatHack 2026</p>
+  </section>
+
+  <!-- HUD -->
+  <div class="cap" id="cap" hidden></div>
+  <div class="hud">
+    <div class="progress" id="progress"></div>
+    <div class="ctrls">
+      <button id="playBtn">&#10073;&#10073; Pause</button>
+      <button id="replayBtn">&#8635; Replay</button>
+      <span id="counter">1 / 7</span>
+      <span style="margin-left:auto">Hover to show controls &middot; screen-record full-screen for your video</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var scenes = Array.prototype.slice.call(document.querySelectorAll('.scene'));
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var playBtn = document.getElementById('playBtn');
+  var replayBtn = document.getElementById('replayBtn');
+  var i = 0, timer = null, playing = true;
+
+  // build progress segments
+  scenes.forEach(function(s){
+    var seg = document.createElement('div'); seg.className='pseg';
+    seg.innerHTML='<i></i>'; progress.appendChild(seg);
+  });
+  var segs = Array.prototype.slice.call(progress.children);
+
+  function show(n){
+    scenes.forEach(function(s,k){ s.classList.toggle('active', k===n); });
+    segs.forEach(function(seg,k){
+      seg.classList.remove('active','done');
+      if(k<n) seg.classList.add('done');
+    });
+    counter.textContent=(n+1)+' / '+scenes.length;
+    var dur=parseInt(scenes[n].getAttribute('data-dur'),10)||6000;
+    var seg=segs[n], bar=seg.querySelector('i');
+    bar.style.animation='none'; void bar.offsetWidth;
+    seg.style.setProperty('--dur',dur+'ms');
+    if(playing) seg.classList.add('active');
+    clearTimeout(timer);
+    if(playing) timer=setTimeout(next,dur);
+  }
+  function next(){ i=(i+1)%scenes.length; show(i); }
+
+  playBtn.addEventListener('click',function(){
+    playing=!playing;
+    playBtn.innerHTML = playing ? '&#10073;&#10073; Pause' : '&#9654; Play';
+    if(playing){ segs[i].classList.add('active'); var d=parseInt(scenes[i].getAttribute('data-dur'),10); timer=setTimeout(next,d); }
+    else { clearTimeout(timer); var bar=segs[i].querySelector('i'); var w=getComputedStyle(bar).width; bar.style.animation='none'; bar.style.width=w; }
+  });
+  replayBtn.addEventListener('click',function(){ i=0; playing=true; playBtn.innerHTML='&#10073;&#10073; Pause'; show(0); });
+
+  // start
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ show(0); }); });
+
+  // keyboard: space=pause, arrows=seek, f=fullscreen
+  document.addEventListener('keydown',function(e){
+    if(e.key===' '){ e.preventDefault(); playBtn.click(); }
+    else if(e.key==='ArrowRight'){ clearTimeout(timer); i=(i+1)%scenes.length; show(i); }
+    else if(e.key==='ArrowLeft'){ clearTimeout(timer); i=(i-1+scenes.length)%scenes.length; show(i); }
+    else if(e.key.toLowerCase()==='f'){ var st=document.getElementById('stage'); if(!document.fullscreenElement){ st.requestFullscreen&&st.requestFullscreen(); } else { document.exitFullscreen&&document.exitFullscreen(); } }
+  });
+})();
+</script>
+</body>
+</html>
